@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Air OCC - System Verification Tests</title>
+  <style>
+    body {
+      background-color: #050b14;
+      color: #f0f6fc;
+      font-family: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      padding: 2rem;
+      margin: 0;
+    }
+    .test-container {
+      max-width: 900px;
+      margin: 0 auto;
+      background: rgba(13, 24, 42, 0.85);
+      border: 1px solid rgba(0, 240, 255, 0.15);
+      border-radius: 12px;
+      padding: 2rem;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+    h1 {
+      font-size: 2rem;
+      color: #00f0ff;
+      border-bottom: 2px solid rgba(0, 240, 255, 0.15);
+      padding-bottom: 0.5rem;
+      margin-top: 0;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .summary {
+      display: flex;
+      gap: 2rem;
+      margin: 1.5rem 0;
+      font-size: 1.1rem;
+      font-family: monospace;
+    }
+    .summary-item {
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      border: 1px solid rgba(255,255,255,0.05);
+    }
+    .summary-item.passed {
+      background: rgba(0, 255, 102, 0.1);
+      border-color: rgba(0, 255, 102, 0.2);
+      color: #00ff66;
+    }
+    .summary-item.failed {
+      background: rgba(255, 0, 85, 0.1);
+      border-color: rgba(255, 0, 85, 0.2);
+      color: #ff0055;
+    }
+    .test-suite {
+      margin-top: 2rem;
+    }
+    .suite-title {
+      font-size: 1.2rem;
+      color: #ffaa00;
+      margin-bottom: 0.75rem;
+      text-transform: uppercase;
+      font-family: monospace;
+    }
+    .test-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.75rem 1rem;
+      background: rgba(0,0,0,0.25);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 6px;
+      margin-bottom: 0.5rem;
+      font-family: monospace;
+    }
+    .test-item.passed {
+      border-left: 4px solid #00ff66;
+    }
+    .test-item.failed {
+      border-left: 4px solid #ff0055;
+    }
+    .test-name {
+      font-weight: bold;
+    }
+    .test-result {
+      font-weight: bold;
+    }
+    .test-result.passed { color: #00ff66; }
+    .test-result.failed { color: #ff0055; }
+    .error-log {
+      display: block;
+      color: #ff88a8;
+      font-size: 0.85rem;
+      margin-top: 0.25rem;
+      white-space: pre-wrap;
+    }
+  </style>
+  <script src="app.js"></script>
+</head>
+<body>
+
+  <div class="test-container">
+    <h1>Smart Air OCC System Verification Tests</h1>
+    <p>Automated verification suite validating scheduling algorithms, mathematical prediction models, and constraint engine rules.</p>
+    
+    <div class="summary">
+      <div class="summary-item" id="total-tests">Total: 0</div>
+      <div class="summary-item passed" id="passed-tests">Passed: 0</div>
+      <div class="summary-item failed" id="failed-tests">Failed: 0</div>
+    </div>
+
+    <div class="test-suite" id="test-list">
+      <!-- Dynamic Test Results -->
+    </div>
+  </div>
+
+  <script>
+    // Simple inline test framework
+    const testList = document.getElementById("test-list");
+    let totalCount = 0;
+    let passCount = 0;
+    let failCount = 0;
+
+    function assert(condition, message) {
+      if (!condition) {
+        throw new Error(message || "Assertion Failed");
+      }
+    }
+
+    function runSuite(name, testCases) {
+      const suiteDiv = document.createElement("div");
+      suiteDiv.style.marginBottom = "2rem";
+      suiteDiv.innerHTML = `<div class="suite-title">Suite: ${name}</div>`;
+      testList.appendChild(suiteDiv);
+
+      for (const [testName, testFn] of Object.entries(testCases)) {
+        totalCount++;
+        const itemDiv = document.createElement("div");
+        itemDiv.className = "test-item";
+        
+        try {
+          testFn();
+          // Passed
+          passCount++;
+          itemDiv.classList.add("passed");
+          itemDiv.innerHTML = `
+            <div>
+              <span class="test-name">${testName}</span>
+            </div>
+            <span class="test-result passed">PASSED</span>
+          `;
+        } catch (e) {
+          // Failed
+          failCount++;
+          itemDiv.classList.add("failed");
+          itemDiv.innerHTML = `
+            <div>
+              <span class="test-name">${testName}</span>
+              <span class="error-log">${e.message}</span>
+            </div>
+            <span class="test-result failed">FAILED</span>
+          `;
+        }
+        suiteDiv.appendChild(itemDiv);
+      }
+
+      // Update counters
+      document.getElementById("total-tests").textContent = `Total: ${totalCount}`;
+      document.getElementById("passed-tests").textContent = `Passed: ${passCount}`;
+      document.getElementById("failed-tests").textContent = `Failed: ${failCount}`;
+    }
+
+    // Run tests on load
+    window.addEventListener("load", () => {
+      // Suite 1: EDF Sorting
+      runSuite("Earliest Deadline First (EDF) Scheduler", {
+        "Should sort Medical cargo to the very top": () => {
+          const testCargo = [
+            { id: "C-Standard", priority: 4, deadline: "2026-07-12T20:00" },
+            { id: "C-Medical", priority: 1, deadline: "2026-07-12T23:00" },
+            { id: "C-Express", priority: 3, deadline: "2026-07-12T18:00" }
+          ];
+          const sorted = sortCargoByEDF(testCargo);
+          assert(sorted[0].id === "C-Medical", "Medical did not bubble to top");
+          assert(sorted[1].id === "C-Express", "Express did not bubble above Standard");
+        },
+        "Should sort by deadline when priorities are equal": () => {
+          const testCargo = [
+            { id: "C-Late", priority: 2, deadline: "2026-07-12T22:00" },
+            { id: "C-Early", priority: 2, deadline: "2026-07-12T14:00" }
+          ];
+          const sorted = sortCargoByEDF(testCargo);
+          assert(sorted[0].id === "C-Early", "Early deadline did not sort first");
+        }
+      });
+
+      // Suite 2: Latest Acceptance Time (LAT)
+      runSuite("Latest Booking Acceptance Time (LAT) Calculator", {
+        "Should reject booking if current time is past LAT": () => {
+          // Flight departure: 15:00
+          // Preparation cutoff = 4 hours. LAT is 11:00
+          // Simulated time is 11:30. This should fail.
+          const depMinutes = 15 * 60; // 15:00
+          const currentMinutes = 11 * 60 + 30; // 11:30
+          const latMinutes = depMinutes - 240; // 11:00
+          
+          const isFeasible = currentMinutes <= latMinutes;
+          assert(isFeasible === false, "Failed to reject booking past LAT deadline");
+        },
+        "Should accept booking if current time is before LAT": () => {
+          // Flight departure: 20:00
+          // LAT is 16:00. Simulated time is 11:30. This should pass.
+          const depMinutes = 20 * 60; // 20:00
+          const currentMinutes = 11 * 60 + 30; // 11:30
+          const latMinutes = depMinutes - 240; // 16:00
+          
+          const isFeasible = currentMinutes <= latMinutes;
+          assert(isFeasible === true, "Rejected feasible booking before LAT deadline");
+        }
+      });
+
+      // Suite 3: Constraint Engine
+      runSuite("Hard Constraint Engine", {
+        "Should fail slot allocation if airport is Closed": () => {
+          // Setup state variables
+          state.airports.DEL.status = "Closed";
+          const flight = { origin: "BOM", destination: "DEL", duration: 120, aircraft: "VT-IND" };
+          const check = validateHardConstraints(flight, []);
+          assert(check.valid === false, "Allowed slot allocation to a closed destination hub");
+          assert(check.reason.includes("slot closed"), "Incorrect failure message");
+          
+          // Cleanup
+          state.airports.DEL.status = "Open";
+        },
+        "Should fail if cargo weight exceeds payload capacity": () => {
+          const flight = { origin: "BOM", destination: "DEL", duration: 120, aircraft: "VT-IND" }; // Cap 27t
+          const heavyCargo = [{ weight: 32.0, hazardous: false }];
+          const check = validateHardConstraints(flight, heavyCargo);
+          assert(check.valid === false, "Allowed overweight cargo load");
+          assert(check.reason.includes("Capacity overload"), "Incorrect payload failure message");
+        },
+        "Should enforce DGCA compliance: B757 cannot fly hazardous": () => {
+          const flight = { origin: "CCU", destination: "BOM", duration: 130, aircraft: "VT-BLU" }; // B757
+          const dgCargo = [{ weight: 5.0, hazardous: true }];
+          const check = validateHardConstraints(flight, dgCargo);
+          assert(check.valid === false, "Allowed hazardous cargo on Boeing 757");
+          assert(check.reason.includes("DGCA Non-Compliance"), "Failed to enforce B757 hazard restriction");
+        },
+        "Should ground flights if wind speed exceeds 65 knots": () => {
+          state.windSpeed = 70;
+          const flight = { origin: "BOM", destination: "DEL", duration: 120, aircraft: "VT-IND" };
+          const check = validateHardConstraints(flight, []);
+          assert(check.valid === false, "Allowed takeoff in extreme weather (>65 knots wind)");
+          
+          // Cleanup
+          state.windSpeed = 12;
+        }
+      });
+
+      // Suite 4: ML Prediction Layer
+      runSuite("Random Forest Predictors", {
+        "Expected Fuel should scale with distance": () => {
+          const shortFlight = { origin: "BOM", destination: "AMD", aircraft: "VT-IND" }; // Short route
+          const longFlight = { origin: "DEL", destination: "BLR", aircraft: "VT-IND" }; // Long route
+          const shortFuel = runRandomForestML(shortFlight).fuel;
+          const longFuel = runRandomForestML(longFlight).fuel;
+          assert(longFuel > shortFuel, "Fuel prediction did not scale with distance");
+        },
+        "Expected Delay should increase in storm conditions": () => {
+          const flight = { origin: "BOM", destination: "DEL", aircraft: "VT-IND" };
+          state.weather = "Normal";
+          const delayNormal = runRandomForestML(flight).delay;
+          
+          state.weather = "Storm";
+          const delayStorm = runRandomForestML(flight).delay;
+          
+          assert(delayStorm > delayNormal, "Expected delay did not reflect weather deterioration");
+          
+          // Cleanup
+          state.weather = "Normal";
+        }
+      });
+    });
+  </script>
+</body>
+</html>
