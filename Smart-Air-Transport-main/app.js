@@ -191,6 +191,74 @@ function initCustomerOrderForm() {
   const latBox = document.getElementById("lat-feedback-box");
   if (!originSelect || !destSelect || !latBox) return;
 
+  // Set date picker constraints dynamically (Indian Standard Time)
+  const deadlineInput = document.getElementById("delivery-deadline");
+  if (deadlineInput) {
+    const getIstStr = (offsetDays = 0) => {
+      const d = getIstDate();
+      if (offsetDays !== 0) d.setDate(d.getDate() + offsetDays);
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      const h = String(d.getHours()).padStart(2, '0');
+      const min = String(d.getMinutes()).padStart(2, '0');
+      return `${y}-${m}-${day}T${h}:${min}`;
+    };
+    deadlineInput.min = getIstStr(0);
+    deadlineInput.max = getIstStr(180); // 6 months from now
+  }
+
+  function checkDeadlineValidity() {
+    if (!deadlineInput) return true;
+    const deadlineVal = deadlineInput.value;
+    const cargoTypeVal = document.getElementById("cargo-type").value;
+    if (!deadlineVal) return true;
+
+    const selectedDate = new Date(deadlineVal);
+    const nowIST = getIstDate();
+
+    // If Express, must be at least 4 hours in the future
+    if (cargoTypeVal === "Express") {
+      const diffMs = selectedDate.getTime() - nowIST.getTime();
+      const diffHours = diffMs / (1000 * 3600);
+      if (diffHours < 4) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  if (deadlineInput) {
+    deadlineInput.addEventListener("change", () => {
+      if (!checkDeadlineValidity()) {
+        showToast("Error: Express parcels must be scheduled at least 4 hours in advance!");
+        deadlineInput.style.borderColor = "var(--danger-color)";
+      } else {
+        deadlineInput.style.borderColor = "";
+      }
+    });
+
+    document.getElementById("cargo-type").addEventListener("change", () => {
+      if (!checkDeadlineValidity()) {
+        showToast("Error: Express parcels must be scheduled at least 4 hours in advance!");
+        deadlineInput.style.borderColor = "var(--danger-color)";
+      } else {
+        deadlineInput.style.borderColor = "";
+      }
+    });
+  }
+
+  // Dangerous Goods Fields Toggle
+  const hazardousCheckbox = document.getElementById("hazardous-flag");
+  const dgFieldsContainer = document.getElementById("dg-fields-container");
+  if (hazardousCheckbox && dgFieldsContainer) {
+    hazardousCheckbox.addEventListener("change", () => {
+      dgFieldsContainer.style.display = hazardousCheckbox.checked ? "block" : "none";
+      const dgUn = document.getElementById("dg-un-number");
+      if (dgUn) dgUn.required = hazardousCheckbox.checked;
+    });
+  }
+
   // LAT checker
   [originSelect, destSelect].forEach(sel => sel.addEventListener("change", () => {
     if (originSelect.value === destSelect.value && originSelect.value !== "") {
@@ -200,7 +268,7 @@ function initCustomerOrderForm() {
     if (originSelect.value && destSelect.value) {
       // Simulate LAT calculation (rule: lock flight 4 hours before departure)
       latBox.style.display = "block";
-      const now = new Date();
+      const now = getIstDate();
       const depDate = new Date(now.getTime() + (6 * 3600 * 1000)); // 6 hours out
       const latDate = new Date(depDate.getTime() - (4 * 3600 * 1000)); // 4 hours cutoff
 
@@ -222,11 +290,31 @@ function initCustomerOrderForm() {
       return;
     }
 
+    if (!checkDeadlineValidity()) {
+      alert("Validation failed: Express cargo deadline must be at least 4 hours in the future from current Indian Standard Time (IST).");
+      return;
+    }
+
     const weight = parseInt(document.getElementById("package-weight").value);
     const origin = originSelect.value;
     const dest = destSelect.value;
     const type = document.getElementById("cargo-type").value;
     const deadline = document.getElementById("delivery-deadline").value;
+
+    // Dangerous Goods reading
+    const isDangerousGoods = hazardousCheckbox ? hazardousCheckbox.checked : false;
+    let dgClass = "";
+    let dgUnNumber = "";
+    let dgPackingGroup = "";
+    let dgPermissionFile = "";
+    
+    if (isDangerousGoods) {
+      dgClass = document.getElementById("dg-class").value;
+      dgUnNumber = document.getElementById("dg-un-number").value || "1845";
+      dgPackingGroup = document.getElementById("dg-packing-group").value;
+      const fileInput = document.getElementById("dg-permission-file");
+      dgPermissionFile = fileInput && fileInput.files[0] ? fileInput.files[0].name : "DGCA_ICAO_Permission.pdf";
+    }
 
     const trackingId = `TRP-${Math.floor(1000 + Math.random() * 9000)}`;
 
@@ -240,7 +328,13 @@ function initCustomerOrderForm() {
       cargoType: type,
       departure: deadline,
       status: "Screening",
-      distance: calculateGlobalDistance(origin, dest)
+      distance: calculateGlobalDistance(origin, dest),
+      isDangerousGoods: isDangerousGoods,
+      dgClass: dgClass,
+      dgUnNumber: dgUnNumber,
+      dgPackingGroup: dgPackingGroup,
+      dgPermissionFile: dgPermissionFile,
+      dgCleared: !isDangerousGoods // Cleared is true for standard packages, false for DG (Safety Officer approval required)
     };
 
     // Save to global state & sync
@@ -248,14 +342,58 @@ function initCustomerOrderForm() {
     saveDatabase();
 
     // Show screening pipeline
+    document.getElementById("success-tracking-id").textContent = trackingId;
     form.style.display = "none";
     document.getElementById("order-success").style.display = "block";
-    document.getElementById("success-tracking-id").textContent = trackingId;
 
     runLiveSecurityScreening(trackingId);
   });
 
-  // Success screen action buttons
+  // Flight Consolidation Feasibility Analyzer Handler
+  const btnAnalyze = document.getElementById("btn-analyze-consolidation");
+  if (btnAnalyze) {
+    btnAnalyze.addEventListener("click", () => {
+      const origin = document.getElementById("consolidate-origin").value;
+      const dest = document.getElementById("consolidate-dest").value;
+      const weight = parseFloat(document.getElementById("consolidate-weight").value) || 0;
+
+      if (origin === dest) {
+        alert("Origin and Destination cannot be the same!");
+        return;
+      }
+      if (weight <= 0) {
+        alert("Please enter a valid payload weight!");
+        return;
+      }
+
+      const dist = calculateGlobalDistance(origin, dest);
+      const revenue = (weight * 180) / 100000;
+      const cost = ((dist * 350) + 50000) / 100000;
+      const profit = revenue - cost;
+      const fuel = dist * 12; // L
+
+      document.getElementById("consolidation-status-text").style.display = "none";
+      document.getElementById("consolidation-results").style.display = "block";
+
+      document.getElementById("consolidation-net-profit").textContent = `₹ ${Math.max(0, profit).toFixed(2)} Lakhs`;
+      document.getElementById("consolidation-projected-profit").innerHTML = `Projected Profit:<br>₹ ${profit.toFixed(2)} Lakhs`;
+      document.getElementById("consolidation-fuel").textContent = `${Math.round(fuel).toLocaleString()} L`;
+
+      const verdict = document.getElementById("consolidation-verdict");
+      if (profit > 1.0) {
+        verdict.textContent = "✓ FEASIBLE (HIGH MARGIN)";
+        verdict.style.color = "var(--success-color)";
+      } else if (profit > 0) {
+        verdict.textContent = "⚠ BORDERLINE (LOW CONSOLIDATION)";
+        verdict.style.color = "var(--warning-color)";
+      } else {
+        verdict.textContent = "✗ INFEASIBLE (LOSS-MAKING)";
+        verdict.style.color = "var(--danger-color)";
+      }
+    });
+  }
+
+  // Success screen action buttonsns
   document.getElementById("success-track-btn").addEventListener("click", () => {
     const id = document.getElementById("success-tracking-id").textContent;
     document.getElementById("tracker-input").value = id;
@@ -387,7 +525,26 @@ function searchConsignment(code) {
   document.getElementById("track-origin-disp").textContent = `${trip.origin} Hub ➔ ${trip.destination} Hub`;
   document.getElementById("track-aircraft-disp").textContent = trip.aircraft;
   document.getElementById("track-package-disp").textContent = `${trip.cargoWeight.toLocaleString()} kg | Distance: ${trip.distance} km`;
-  document.getElementById("track-haz-disp").textContent = trip.cargoType === "Express" ? "Normal Screening Cleared" : "Secured";
+  const isDG = trip.isDangerousGoods || false;
+  if (isDG) {
+    document.getElementById("track-haz-disp").textContent = `Classified Hazard: ${trip.dgClass || 'Class 9'} (UN ${trip.dgUnNumber || '1845'}) - PG: ${trip.dgPackingGroup || 'PG III'}`;
+    const dgRow = document.getElementById("track-dg-clearance-row");
+    const dgDisp = document.getElementById("track-dg-clearance-disp");
+    if (dgRow && dgDisp) {
+      dgRow.style.display = "flex";
+      if (trip.dgCleared) {
+        dgDisp.textContent = "Cleared";
+        dgDisp.style.color = "var(--success-color)";
+      } else {
+        dgDisp.textContent = "Yet to clear";
+        dgDisp.style.color = "var(--warning-color)";
+      }
+    }
+  } else {
+    document.getElementById("track-haz-disp").textContent = "Standard Cargo Secured";
+    const dgRow = document.getElementById("track-dg-clearance-row");
+    if (dgRow) dgRow.style.display = "none";
+  }
   document.getElementById("track-delivery-disp").textContent = trip.status === "Completed" ? "Delivered ✓" : "In Operations Queue";
 
   // Map Drawing
@@ -458,7 +615,13 @@ function initAdminAuth() {
     const pass = document.getElementById("admin-password").value;
     const role = document.getElementById("admin-role-select").value;
 
-    if (pass === "trans_cargo") {
+    let valid = false;
+    if (role === "Fleet Manager" && pass === "fleet123") valid = true;
+    else if (role === "Dispatch Manager" && pass === "dispatch123") valid = true;
+    else if (role === "Safety Officer" && pass === "safety123") valid = true;
+    else if (role === "Financial Analyst" && pass === "finance123") valid = true;
+
+    if (valid) {
       sessionStorage.setItem("isAdminAuthenticated", "true");
       sessionStorage.setItem("userRole", role);
       errorMsg.style.display = "none";
@@ -490,12 +653,52 @@ function checkOCCAuth() {
     loginCard.style.display = "none";
     dashboard.style.display = "block";
     
+    const userRole = sessionStorage.getItem("userRole");
     roleBadge.style.display = "block";
-    roleBadge.textContent = sessionStorage.getItem("userRole");
+    roleBadge.textContent = userRole;
     logoutBtn.style.display = "block";
+
+    // Hide all buttons first
+    const buttons = document.querySelectorAll("#admin-occ-dashboard .btn-hud-action");
+    buttons.forEach(btn => btn.style.display = "none");
     
-    // Draw default panel
+    // Define visible panels per role
+    let visiblePanels = [];
+    if (userRole === "Fleet Manager") {
+      visiblePanels = ["overview", "aircraft", "pilots", "dispatch", "maint", "fuel", "reports", "dg"];
+    } else if (userRole === "Dispatch Manager") {
+      visiblePanels = ["overview", "aircraft", "pilots", "dispatch", "maint", "reports", "dg"];
+    } else if (userRole === "Safety Officer") {
+      visiblePanels = ["overview", "pilots", "dispatch", "maint", "dg"];
+    } else if (userRole === "Financial Analyst") {
+      visiblePanels = ["overview", "fuel", "reports"];
+    }
+
+    // Show only allowed buttons
+    buttons.forEach(btn => {
+      const onClickAttr = btn.getAttribute("onclick");
+      if (onClickAttr) {
+        const panel = onClickAttr.match(/'([^']+)'/)[1];
+        if (visiblePanels.includes(panel)) {
+          btn.style.display = "inline-block";
+        }
+      }
+    });
+
+    // Make sure current panel is allowed, otherwise switch to first allowed one
+    if (!visiblePanels.includes(currentOCCSubPanel)) {
+      currentOCCSubPanel = visiblePanels[0];
+    }
+
+    // Hide/show financial features
+    const isFinRole = (userRole === "Financial Analyst" || userRole === "Fleet Manager" || userRole === "Dispatch Manager");
+    document.querySelectorAll(".financial-analyst-only").forEach(el => {
+      el.style.display = isFinRole ? "block" : "none";
+    });
+    
+    // Draw active panel
     switchOCCPanel(currentOCCSubPanel);
+    initOCCMapInteractions();
   } else {
     loginCard.style.display = "block";
     dashboard.style.display = "none";
@@ -515,19 +718,29 @@ function switchOCCPanel(panelId) {
   const buttons = document.querySelectorAll("#admin-occ-dashboard .btn-hud-action");
   buttons.forEach(btn => {
     btn.classList.remove("active");
-    if (btn.textContent.toLowerCase().includes(panelId === "maint" ? "maintenance" : panelId)) {
+    if (btn.getAttribute("onclick") && btn.getAttribute("onclick").includes(panelId)) {
       btn.classList.add("active");
     }
   });
 
-  // Load specific grid renderers
-  if (panelId === "overview") renderOCCStats();
-  if (panelId === "aircraft") renderOCCAircraft();
-  if (panelId === "pilots") renderOCCPilots();
-  if (panelId === "dispatch") renderOCCDispatchBoard();
-  if (panelId === "maint") renderOCCMaintenanceTable();
-  if (panelId === "fuel") renderOCCExpensesTable();
-  if (panelId === "reports") renderOCCReports();
+  // Render sub-panel data dynamically
+  if (panelId === "overview") {
+    renderOCCOverview();
+  } else if (panelId === "aircraft") {
+    renderOCCAircraft();
+  } else if (panelId === "pilots") {
+    renderOCCPilots();
+  } else if (panelId === "dispatch") {
+    renderOCCDispatch();
+  } else if (panelId === "maint") {
+    renderOCCMaint();
+  } else if (panelId === "fuel") {
+    renderOCCFuel();
+  } else if (panelId === "reports") {
+    renderOCCReports();
+  } else if (panelId === "dg") {
+    renderOCCDangerousGoods();
+  }
 }
 
 // ==========================================================================
@@ -600,8 +813,8 @@ function renderOCCAircraft() {
 function renderOCCPilots() {
   const tbody = document.getElementById("pilots-table-body");
   tbody.innerHTML = Object.entries(state.pilots).map(([id, p]) => {
-    const isLicenseExpired = new Date(p.licenseExp) < new Date();
-    const isMedicalExpired = new Date(p.medicalExp) < new Date();
+    const isLicenseExpired = new Date(p.licenseExp) < getIstDate();
+    const isMedicalExpired = new Date(p.medicalExp) < getIstDate();
     let warn = "";
     if (isLicenseExpired) warn += `<span style="color:var(--danger-color); font-weight:bold; font-size:0.65rem;"> [LICENSE EXPIRED]</span>`;
     if (isMedicalExpired) warn += `<span style="color:var(--danger-color); font-weight:bold; font-size:0.65rem;"> [MEDICAL EXPIRED]</span>`;
@@ -656,8 +869,8 @@ function updateDispatchFormDropdowns() {
   acSelect.innerHTML = availableAC.map(([reg, ac]) => `<option value="${reg}">${reg} (${ac.model})</option>`).join("");
 
   const availablePilots = Object.entries(state.pilots).filter(([id, p]) => {
-    const isLicenseExpired = new Date(p.licenseExp) < new Date();
-    const isMedicalExpired = new Date(p.medicalExp) < new Date();
+    const isLicenseExpired = new Date(p.licenseExp) < getIstDate();
+    const isMedicalExpired = new Date(p.medicalExp) < getIstDate();
     return p.status === "Available" && !isLicenseExpired && !isMedicalExpired;
   });
   pltSelect.innerHTML = availablePilots.map(([id, p]) => `<option value="${id}">${p.name}</option>`).join("");
@@ -1474,14 +1687,17 @@ function updateGlobalRouteMap() {
   const lineGroup = document.getElementById("active-planes-line-group");
   const activeTrips = state.trips.filter(t => t.status === "Dispatched");
 
-  // Draw active routes lines
+  // Draw active routes curved lines
   lineGroup.innerHTML = activeTrips.map(t => {
     const o = AIRPORTS[t.origin];
     const d = AIRPORTS[t.destination];
     if (!o || !d) return "";
 
+    const ctrlX = (o.x + d.x) / 2;
+    const ctrlY = (o.y + d.y) / 2 - 30;
+
     return `
-      <path d="M ${o.x},${o.y} L ${d.x},${d.y}" class="map-route-line" />
+      <path d="M ${o.x},${o.y} Q ${ctrlX},${ctrlY} ${d.x},${d.y}" class="map-route-line flight-line" fill="none" style="stroke: var(--accent-color); stroke-width: 1.5; stroke-dasharray: 6, 4;" />
     `;
   }).join("");
 }
@@ -1504,9 +1720,18 @@ function animatePlanes() {
       const d = AIRPORTS[t.destination];
       if (!o || !d) return "";
 
-      const x = o.x + (d.x - o.x) * tick;
-      const y = o.y + (d.y - o.y) * tick;
-      const angle = Math.atan2(d.y - o.y, d.x - o.x) * (180 / Math.PI);
+      // Quadratic Bezier interpolation for curved paths
+      const ctrlX = (o.x + d.x) / 2;
+      const ctrlY = (o.y + d.y) / 2 - 30;
+      
+      const x = (1 - tick) * (1 - tick) * o.x + 2 * (1 - tick) * tick * ctrlX + tick * tick * d.x;
+      const y = (1 - tick) * (1 - tick) * o.y + 2 * (1 - tick) * tick * ctrlY + tick * tick * d.y;
+      
+      // Approximate angle
+      const nextTick = tick + 0.01;
+      const nextX = (1 - nextTick) * (1 - nextTick) * o.x + 2 * (1 - nextTick) * nextTick * ctrlX + nextTick * nextTick * d.x;
+      const nextY = (1 - nextTick) * (1 - nextTick) * o.y + 2 * (1 - nextTick) * nextTick * ctrlY + nextTick * nextTick * d.y;
+      const angle = Math.atan2(nextY - y, nextX - x) * (180 / Math.PI);
 
       return `
         <g class="flying-plane" transform="translate(${x}, ${y}) rotate(${angle})">
@@ -1521,8 +1746,12 @@ function animatePlanes() {
 // ==========================================================================
 // Helper Utilities
 // ==========================================================================
+function getIstDate() {
+  return new Date(new Date().toLocaleString("en-US", {timeZone: "Asia/Kolkata"}));
+}
+
 function getCurrentTimestamp() {
-  const now = new Date();
+  const now = getIstDate();
   const yyyy = now.getFullYear();
   const mm = String(now.getMonth() + 1).padStart(2, '0');
   const dd = String(now.getDate()).padStart(2, '0');
@@ -2055,6 +2284,109 @@ function sendOtpEmail(email, otp) {
   });
 }
 
+function initOCCMapInteractions() {
+  const tooltip = document.getElementById("map-tooltip");
+  if (!tooltip) return;
+
+  document.querySelectorAll(".map-hub").forEach(hubEl => {
+    const hubId = hubEl.id.replace("hub-", "");
+    const info = AIRPORTS[hubId];
+    if (!info) return;
+
+    // Remove existing event listeners to avoid duplicates
+    const newHubEl = hubEl.cloneNode(true);
+    hubEl.parentNode.replaceChild(newHubEl, hubEl);
+
+    newHubEl.addEventListener("mouseenter", (e) => {
+      const weather = state.weatherStatus || "Normal";
+      const incoming = state.trips.filter(t => t.destination === hubId && t.status === "Dispatched").length;
+      const outgoing = state.trips.filter(t => t.origin === hubId && t.status === "Dispatched").length;
+
+      tooltip.innerHTML = `
+        <strong style="color: var(--accent-color); font-size: 0.85rem; font-family:var(--font-mono);">${info.name}</strong><br>
+        <span style="color: var(--text-secondary); font-size: 0.7rem;">Region: ${info.region}</span><br>
+        <span style="color: var(--text-secondary); font-size: 0.7rem;">Local Weather: ${weather}</span><br>
+        <span style="color: var(--success-color); font-weight: bold; font-size: 0.7rem;">Active Flights: ${incoming + outgoing} (In: ${incoming}, Out: ${outgoing})</span>
+      `;
+      tooltip.style.display = "block";
+    });
+
+    newHubEl.addEventListener("mousemove", (e) => {
+      const wrapper = document.querySelector(".svg-map-wrapper");
+      if (!wrapper) return;
+      const wrapperRect = wrapper.getBoundingClientRect();
+      const x = e.clientX - wrapperRect.left + 15;
+      const y = e.clientY - wrapperRect.top + 15;
+      tooltip.style.left = `${x}px`;
+      tooltip.style.top = `${y}px`;
+    });
+
+    newHubEl.addEventListener("mouseleave", () => {
+      tooltip.style.display = "none";
+    });
+  });
+}
+
+function renderOCCDangerousGoods() {
+  const tbody = document.getElementById("dg-approvals-table-body");
+  if (!tbody) return;
+
+  const dgTrips = state.trips.filter(t => t.isDangerousGoods);
+
+  if (dgTrips.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:var(--text-muted); font-size: 0.8rem; padding: 1rem;">No dangerous goods shipments registered.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = dgTrips.map(t => {
+    const clearedHtml = t.dgCleared 
+      ? `<span class="status-indicator dispatched" style="background:rgba(0,255,102,0.1); border-color:var(--success-color); color:var(--success-color);">Cleared</span>`
+      : `<span class="status-indicator cancelled" style="background:rgba(255,0,85,0.1); border-color:var(--danger-color); color:var(--danger-color);">Yet to clear</span>`;
+
+    const docLink = t.dgPermissionFile 
+      ? `<a href="#" onclick="alert('Viewing DG Permission Document: ${t.dgPermissionFile}'); return false;" style="color:var(--accent-color); text-decoration:underline;">${t.dgPermissionFile}</a>`
+      : `<span style="color:var(--text-muted);">No File</span>`;
+
+    const actionsHtml = t.dgCleared
+      ? `<button class="btn btn-secondary" onclick="setDgApproval('${t.id}', false)" style="padding:0.25rem 0.5rem; font-size:0.75rem;">Revoke</button>`
+      : `<button class="btn btn-hud-action" onclick="setDgApproval('${t.id}', true)" style="padding:0.25rem 0.5rem; font-size:0.75rem; border-color:var(--success-color); color:var(--success-color); background:rgba(0,255,102,0.03);">Approve</button>
+         <button class="btn btn-danger" onclick="setDgApproval('${t.id}', false)" style="padding:0.25rem 0.5rem; font-size:0.75rem; margin-left:0.25rem;">Reject</button>`;
+
+    return `
+      <tr>
+        <td style="font-family:var(--font-mono); font-weight:bold; color:var(--accent-color);">${t.id}</td>
+        <td>${t.origin} Hub ➔ ${t.destination} Hub (${t.cargoWeight.toLocaleString()} kg)</td>
+        <td><strong style="color:var(--danger-color);">${t.dgClass || 'Class 9'}</strong> (UN ${t.dgUnNumber || '1845'})</td>
+        <td><span style="font-family:var(--font-mono);">${t.dgPackingGroup || 'PG III'}</span></td>
+        <td>${docLink}</td>
+        <td>${clearedHtml}</td>
+        <td>${actionsHtml}</td>
+      </tr>
+    `;
+  }).join("");
+}
+
+function setDgApproval(tripId, isApproved) {
+  const trip = state.trips.find(t => t.id === tripId);
+  if (trip) {
+    trip.dgCleared = isApproved;
+    
+    // Log in decision history
+    const role = sessionStorage.getItem("userRole") || "Safety Officer";
+    state.decisionLogs.unshift({
+      timestamp: new Date().toLocaleTimeString(),
+      operator: role,
+      disruption: isApproved ? `Approved Dangerous Goods` : `Rejected Dangerous Goods`,
+      prevConfig: `${tripId} (Yet to clear)`,
+      newConfig: `${tripId} (${isApproved ? 'Cleared' : 'Yet to clear'})`
+    });
+    
+    saveDatabase();
+    renderOCCDangerousGoods();
+    showToast(`Dangerous Goods status updated for ${tripId}`);
+  }
+}
+
 // Bind OCC functions to global window object for HTML inline click handlers
 window.switchOCCPanel = switchOCCPanel;
 window.dispatchTripOCC = dispatchTripOCC;
@@ -2065,3 +2397,5 @@ window.renderUserDashboard = renderUserDashboard;
 window.updateAuthNavbar = updateAuthNavbar;
 window.showToast = showToast;
 window.sendOtpEmail = sendOtpEmail;
+window.setDgApproval = setDgApproval;
+window.initOCCMapInteractions = initOCCMapInteractions;

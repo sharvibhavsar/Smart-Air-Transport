@@ -977,4 +977,50 @@ input.valid, select.valid, textarea.valid {
   box-shadow: 0 2px 8px rgba(30, 41, 59, 0.15) !important;
 }
 
+/* Light Theme overrides for Danger Buttons to keep high readability */
+[data-theme="light"] .btn-danger {
+  background: rgba(220, 38, 38, 0.08) !important;
+  border-color: rgba(220, 38, 38, 0.3) !important;
+  color: #dc2626 !important;
+}
+
+[data-theme="light"] .btn-danger:hover {
+  background: #dc2626 !important;
+  color: #ffffff !important;
+}
+
+/* Interactive Map animations */
+.flight-line {
+  stroke-dasharray: 6, 4;
+  animation: flight-dash-flow 15s linear infinite;
+  filter: drop-shadow(0 0 3px var(--accent-color));
+}
+
+@keyframes flight-dash-flow {
+  to {
+    stroke-dashoffset: -200;
+  }
+}
+
+.radar-sweep {
+  stroke: rgba(0, 240, 255, 0.12);
+  stroke-width: 1.5;
+  transform-origin: 250px 175px;
+  animation: rotate-radar-sweep 8s linear infinite;
+}
+
+@keyframes rotate-radar-sweep {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.map-hub {
+  cursor: pointer;
+}
+
+.map-hub:hover .hub-circle {
+  fill: var(--accent-color) !important;
+  filter: drop-shadow(0 0 6px var(--accent-color));
+}
+
 
