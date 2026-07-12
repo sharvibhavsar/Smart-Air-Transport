@@ -29,6 +29,10 @@ const AIRPORTS = {
   MUC: { x: 150, y: 150, name: "Munich (MUC)", region: "Europe" }
 };
 
+// Local user accounts state
+let users = JSON.parse(localStorage.getItem("transitops_users") || "[]");
+let currentUser = JSON.parse(localStorage.getItem("transitops_current_user") || "null");
+
 // Global Database State
 let state = {
   aircraft: {
@@ -82,6 +86,8 @@ document.addEventListener("DOMContentLoaded", () => {
   initCustomerTracker();
   initAdminAuth();
   initOCCDashboard();
+  initCustomerAuth();
+  updateAuthNavbar();
   animatePlanes();
 });
 
@@ -105,6 +111,7 @@ function loadDatabase() {
 
 function initTheme() {
   const themeBtn = document.getElementById("theme-btn");
+  if (!themeBtn) return;
   const savedTheme = localStorage.getItem("theme") || "dark";
   document.documentElement.setAttribute("data-theme", savedTheme);
 
@@ -123,6 +130,7 @@ function initRouter() {
   const navLinks = document.querySelectorAll(".nav-link");
   const menuToggle = document.getElementById("menu-toggle-btn");
   const navMenu = document.getElementById("nav-menu");
+  if (!menuToggle || !navMenu) return;
 
   navLinks.forEach(link => {
     link.addEventListener("click", (e) => {
@@ -144,7 +152,7 @@ function initRouter() {
   // Check Hash
   window.addEventListener("hashchange", () => {
     const hash = window.location.hash.substring(1);
-    if (["place-order", "track-order", "occ"].includes(hash)) {
+    if (["place-order", "track-order", "occ", "auth"].includes(hash)) {
       navigateToSection(hash);
     }
   });
@@ -167,6 +175,8 @@ function navigateToSection(sectionId) {
   // Handle panel redraws
   if (sectionId === "occ") {
     checkOCCAuth();
+  } else if (sectionId === "auth") {
+    renderUserDashboard();
   }
 }
 
@@ -175,9 +185,11 @@ function navigateToSection(sectionId) {
 // ==========================================================================
 function initCustomerOrderForm() {
   const form = document.getElementById("order-form");
+  if (!form) return;
   const originSelect = document.getElementById("origin-airport");
   const destSelect = document.getElementById("destination-airport");
   const latBox = document.getElementById("lat-feedback-box");
+  if (!originSelect || !destSelect || !latBox) return;
 
   // LAT checker
   [originSelect, destSelect].forEach(sel => sel.addEventListener("change", () => {
@@ -203,6 +215,12 @@ function initCustomerOrderForm() {
 
   form.addEventListener("submit", (e) => {
     e.preventDefault();
+
+    if (!currentUser) {
+      alert("Authentication required: Please sign up or log in to book cargo transport space.");
+      navigateToSection("auth");
+      return;
+    }
 
     const weight = parseInt(document.getElementById("package-weight").value);
     const origin = originSelect.value;
@@ -329,12 +347,17 @@ function calculateGlobalDistance(o, d) {
 // Public Customer Tracker
 // ==========================================================================
 function initCustomerTracker() {
-  document.getElementById("tracker-search-btn").addEventListener("click", () => {
+  const searchBtn = document.getElementById("tracker-search-btn");
+  if (!searchBtn) return;
+  const sampleBtn = document.getElementById("sample-track-code");
+  if (!sampleBtn) return;
+
+  searchBtn.addEventListener("click", () => {
     const code = document.getElementById("tracker-input").value.trim().toUpperCase();
     searchConsignment(code);
   });
 
-  document.getElementById("sample-track-code").addEventListener("click", (e) => {
+  sampleBtn.addEventListener("click", (e) => {
     const code = e.target.textContent;
     document.getElementById("tracker-input").value = code;
     searchConsignment(code);
@@ -426,7 +449,9 @@ function drawTrackerMiniMap(origin, dest, isFlying) {
 // ==========================================================================
 function initAdminAuth() {
   const loginForm = document.getElementById("admin-login-form");
+  if (!loginForm) return;
   const errorMsg = document.getElementById("admin-login-error");
+  const logoutBtn = document.getElementById("btn-admin-logout");
 
   loginForm.addEventListener("submit", (e) => {
     e.preventDefault();
@@ -445,11 +470,13 @@ function initAdminAuth() {
     }
   });
 
-  document.getElementById("btn-admin-logout").addEventListener("click", () => {
-    sessionStorage.removeItem("isAdminAuthenticated");
-    sessionStorage.removeItem("userRole");
-    checkOCCAuth();
-  });
+  if (logoutBtn) {
+    logoutBtn.addEventListener("click", () => {
+      sessionStorage.removeItem("isAdminAuthenticated");
+      sessionStorage.removeItem("userRole");
+      checkOCCAuth();
+    });
+  }
 }
 
 function checkOCCAuth() {
@@ -596,7 +623,7 @@ function renderOCCDispatchBoard() {
   tbody.innerHTML = state.trips.map(t => {
     let actions = "";
     if (t.status === "Dispatched") {
-      actions = `<button class="btn btn-hud-action" style="padding:0.2rem 0.4rem; font-size:0.7rem;" onclick="completeTrip OCC('${t.id}')">Complete</button>`;
+      actions = `<button class="btn btn-hud-action" style="padding:0.2rem 0.4rem; font-size:0.7rem;" onclick="completeTripOCC('${t.id}')">Complete</button>`;
     } else if (t.status === "Draft") {
       actions = `<button class="btn btn-primary" style="padding:0.2rem 0.4rem; font-size:0.7rem;" onclick="dispatchTripOCC('${t.id}')">Dispatch</button>`;
     }
@@ -859,6 +886,588 @@ function renderOCCReports() {
 }
 
 // ==========================================================================
+// OCC Dashboard Handler
+// ==========================================================================
+function initOCCDashboard() {
+  const occDashboard = document.getElementById("admin-occ-dashboard");
+  if (!occDashboard) return;
+
+  // Render GA visualization generations bars on load
+  renderGAGenerationsVisual();
+  runGeneticAlgorithmOptimization();
+
+  // Commit AI Recommendations button handler
+  const btnApplyAiRec = document.getElementById("btn-apply-ai-rec");
+  if (btnApplyAiRec) {
+    btnApplyAiRec.addEventListener("click", () => {
+      alert("GA Optimization Model Committed: Fleet schedules optimized for minimized delays and fuel consumption.");
+      state.decisionLogs.unshift({
+        timestamp: getCurrentTimestamp(),
+        operator: sessionStorage.getItem("userRole") || "Fleet Manager",
+        disruption: "System Optimization",
+        prevConfig: "Static scheduling",
+        newConfig: "GA Engine Optimizer Committed",
+        rationale: "Optimized route assignments for fuel and time efficiency."
+      });
+      saveDatabase();
+      renderOCCStats();
+      renderGAGenerationsVisual();
+    });
+  }
+
+  // Aircraft CRUD Form handler
+  const acForm = document.getElementById("aircraft-crud-form");
+  if (acForm) {
+    acForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const reg = document.getElementById("ac-reg").value.trim().toUpperCase();
+      const name = document.getElementById("ac-name").value.trim();
+      const model = document.getElementById("ac-model").value;
+      const payload = parseInt(document.getElementById("ac-payload").value);
+      const hours = parseFloat(document.getElementById("ac-hours").value);
+      const acqcost = parseFloat(document.getElementById("ac-acqcost").value);
+      const home = document.getElementById("ac-home").value;
+
+      if (state.aircraft[reg]) {
+        alert(`Aircraft with registration code ${reg} is already registered!`);
+        return;
+      }
+
+      state.aircraft[reg] = {
+        name: name,
+        model: model,
+        type: model.includes("turboprop") || model.includes("ATR") ? "Turboprop" : model.includes("737") || model.includes("321") ? "Narrow-Body" : "Wide-Body",
+        payloadCap: payload,
+        fuelCap: Math.round(payload * 1.5),
+        flyingHours: hours,
+        acqCost: acqcost,
+        homeAirport: home,
+        currentAirport: home,
+        status: "Available"
+      };
+
+      state.decisionLogs.unshift({
+        timestamp: getCurrentTimestamp(),
+        operator: sessionStorage.getItem("userRole") || "Fleet Manager",
+        disruption: "Asset Registered",
+        prevConfig: "None",
+        newConfig: `Aircraft ${reg} Added`,
+        rationale: `Registered fleet asset ${name}.`
+      });
+
+      saveDatabase();
+      renderOCCAircraft();
+      renderOCCStats();
+      acForm.reset();
+      alert(`Aircraft ${reg} successfully registered!`);
+    });
+  }
+
+  // Pilot CRUD Form handler
+  const pilotForm = document.getElementById("pilot-crud-form");
+  if (pilotForm) {
+    pilotForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const name = document.getElementById("plt-name").value.trim();
+      const license = document.getElementById("plt-license").value.trim().toUpperCase();
+      const licExp = document.getElementById("plt-license-exp").value;
+      const medExp = document.getElementById("plt-medical-exp").value;
+      const safety = parseInt(document.getElementById("plt-safety").value);
+      const contact = document.getElementById("plt-contact").value.trim();
+
+      const pilotId = `PL-${Math.floor(105 + Math.random() * 900)}`;
+
+      state.pilots[pilotId] = {
+        name: name,
+        licenseNum: license,
+        category: "ATPL",
+        licenseExp: licExp,
+        medicalExp: medExp,
+        flyingHours: 0,
+        contact: contact,
+        safetyScore: safety,
+        status: "Available"
+      };
+
+      state.decisionLogs.unshift({
+        timestamp: getCurrentTimestamp(),
+        operator: sessionStorage.getItem("userRole") || "Safety Officer",
+        disruption: "Pilot Registered",
+        prevConfig: "None",
+        newConfig: `Pilot ${name} (${pilotId}) Added`,
+        rationale: `Profile directory updated with license checks.`
+      });
+
+      saveDatabase();
+      renderOCCPilots();
+      renderOCCStats();
+      pilotForm.reset();
+      alert(`Pilot Profile ${name} successfully saved with ID: ${pilotId}!`);
+    });
+  }
+
+  // Manual Scheduler / Dispatch Planner Form handler
+  const btnRequestAiRec = document.getElementById("btn-request-ai-rec");
+  const dispatchAiRecBox = document.getElementById("dispatch-ai-rec-box");
+
+  let suggestedAircraft = "";
+  let suggestedPilot = "";
+
+  if (btnRequestAiRec && dispatchAiRecBox) {
+    btnRequestAiRec.addEventListener("click", () => {
+      const origin = document.getElementById("trip-origin").value;
+      const dest = document.getElementById("trip-destination").value;
+      const weight = parseInt(document.getElementById("trip-cargo-weight").value) || 10000;
+      const distance = parseInt(document.getElementById("trip-distance").value) || 800;
+
+      const availableAC = Object.entries(state.aircraft).filter(([reg, ac]) => ac.status === "Available" && ac.payloadCap >= weight);
+      let recommendedReg = "";
+      if (availableAC.length > 0) {
+        const atOrigin = availableAC.find(([reg, ac]) => ac.currentAirport === origin);
+        recommendedReg = atOrigin ? atOrigin[0] : availableAC[0][0];
+      } else {
+        recommendedReg = Object.keys(state.aircraft)[0];
+      }
+
+      const availablePilots = Object.entries(state.pilots).filter(([id, p]) => p.status === "Available");
+      let recommendedPilotId = availablePilots.length > 0 ? availablePilots[0][0] : Object.keys(state.pilots)[0];
+
+      suggestedAircraft = recommendedReg;
+      suggestedPilot = recommendedPilotId;
+
+      const delay = Math.round((distance * 0.005) + (state.weather === "Storm" ? 45 : 8));
+      const fuel = Math.round(distance * 4.1 + (weight * 0.02));
+      const profit = Math.round((weight * 0.025) - (fuel * 0.09));
+
+      const aiTripAircraftEl = document.getElementById("ai-trip-rec-aircraft");
+      const aiTripDelayEl = document.getElementById("ai-trip-rec-delay");
+      const aiTripFuelEl = document.getElementById("ai-trip-rec-fuel");
+      const aiTripProfitEl = document.getElementById("ai-trip-rec-profit");
+
+      if (aiTripAircraftEl) aiTripAircraftEl.textContent = `${recommendedReg} (${state.aircraft[recommendedReg].model})`;
+      if (aiTripDelayEl) aiTripDelayEl.textContent = `+${delay} mins`;
+      if (aiTripFuelEl) aiTripFuelEl.textContent = `${fuel.toLocaleString()} L`;
+      if (aiTripProfitEl) aiTripProfitEl.textContent = `₹ ${(profit / 10).toFixed(2)} Lakhs`;
+
+      dispatchAiRecBox.style.display = "block";
+    });
+  }
+
+  const btnAcceptDispatch = document.getElementById("btn-accept-dispatch");
+  if (btnAcceptDispatch) {
+    btnAcceptDispatch.addEventListener("click", () => {
+      if (!suggestedAircraft || !suggestedPilot) return;
+      document.getElementById("trip-aircraft").value = suggestedAircraft;
+      document.getElementById("trip-pilot").value = suggestedPilot;
+      createAndDispatchManualTrip(true);
+    });
+  }
+
+  const btnOverrideDispatch = document.getElementById("btn-override-dispatch");
+  if (btnOverrideDispatch) {
+    btnOverrideDispatch.addEventListener("click", () => {
+      createAndDispatchManualTrip(false);
+    });
+  }
+
+  function createAndDispatchManualTrip(isAccepted) {
+    const origin = document.getElementById("trip-origin").value;
+    const dest = document.getElementById("trip-destination").value;
+    const weight = parseInt(document.getElementById("trip-cargo-weight").value);
+    const type = document.getElementById("trip-priority").value;
+    const acId = document.getElementById("trip-aircraft").value;
+    const pltId = document.getElementById("trip-pilot").value;
+    const distance = parseInt(document.getElementById("trip-distance").value);
+    const departure = document.getElementById("trip-departure").value;
+
+    if (!acId || !pltId || !weight || !distance || !departure) {
+      alert("Please ensure all dispatch form details (aircraft, pilot, weight, distance, departure) are filled.");
+      return;
+    }
+
+    const ac = state.aircraft[acId];
+    if (weight > ac.payloadCap) {
+      alert(`Payload Violation: Cargo weight (${weight} kg) exceeds ${acId} payload capacity (${ac.payloadCap} kg).`);
+      return;
+    }
+
+    const tripId = `TRP-${Math.floor(1000 + Math.random() * 9000)}`;
+    const newTrip = {
+      id: tripId,
+      origin: origin,
+      destination: dest,
+      aircraft: acId,
+      pilot: pltId,
+      cargoWeight: weight,
+      cargoType: type,
+      departure: departure,
+      status: "Dispatched",
+      distance: distance,
+      logs: [
+        { time: getCurrentTimestamp().slice(11, 16), desc: `Manual scheduling created. Status set to Dispatched (${isAccepted ? 'AI Recommended' : 'Operator Override'}).` }
+      ]
+    };
+
+    state.aircraft[acId].status = "On Trip";
+    state.pilots[pltId].status = "On Trip";
+    state.trips.push(newTrip);
+
+    state.decisionLogs.unshift({
+      timestamp: getCurrentTimestamp(),
+      operator: sessionStorage.getItem("userRole") || "Dispatch Manager",
+      disruption: "Flight Dispatched",
+      prevConfig: "None",
+      newConfig: `Trip ${tripId} Active`,
+      rationale: `Manual dispatch scheduling of flight ${tripId} with ${acId}.`
+    });
+
+    saveDatabase();
+    renderOCCDispatchBoard();
+    renderOCCStats();
+    
+    dispatchAiRecBox.style.display = "none";
+    document.getElementById("trip-dispatch-form").reset();
+    alert(`Consignment ${tripId} has been successfully dispatched!`);
+  }
+
+  // Maintenance Log Form handler
+  const maintForm = document.getElementById("maintenance-log-form");
+  if (maintForm) {
+    maintForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const acId = document.getElementById("maint-aircraft").value;
+      const type = document.getElementById("maint-type").value;
+      const cost = parseFloat(document.getElementById("maint-cost").value);
+      const desc = document.getElementById("maint-desc").value.trim();
+
+      if (!acId) return;
+
+      state.aircraft[acId].status = "In Maintenance";
+      state.maintenance.push({
+        aircraft: acId,
+        type: type,
+        desc: desc,
+        date: getCurrentTimestamp().slice(0, 10),
+        cost: cost,
+        status: "Active"
+      });
+
+      state.decisionLogs.unshift({
+        timestamp: getCurrentTimestamp(),
+        operator: sessionStorage.getItem("userRole") || "Fleet Manager",
+        disruption: "Aircraft Grounded",
+        prevConfig: `${acId} Available`,
+        newConfig: `${acId} In Maintenance`,
+        rationale: `Checklist recorded: ${type} - ${desc}`
+      });
+
+      saveDatabase();
+      renderOCCMaintenanceTable();
+      renderOCCStats();
+      maintForm.reset();
+      alert(`Aircraft ${acId} is now grounded for service maintenance.`);
+    });
+  }
+
+  // Fuel Log Form handler
+  const fuelForm = document.getElementById("fuel-log-form");
+  if (fuelForm) {
+    fuelForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const acId = document.getElementById("fuel-aircraft").value;
+      const qty = parseInt(document.getElementById("fuel-qty").value);
+      const cost = parseFloat(document.getElementById("fuel-cost").value);
+      const date = document.getElementById("fuel-date").value;
+      const airport = document.getElementById("fuel-hub").value;
+
+      state.fuelLogs.push({
+        aircraft: acId,
+        qty: qty,
+        cost: cost,
+        date: date,
+        airport: airport
+      });
+
+      state.decisionLogs.unshift({
+        timestamp: getCurrentTimestamp(),
+        operator: sessionStorage.getItem("userRole") || "Financial Analyst",
+        disruption: "Fuel Upload Recorded",
+        prevConfig: "None",
+        newConfig: `Fuel log registered for ${acId}`,
+        rationale: `Liters: ${qty} | Total cost: ₹ ${cost} L`
+      });
+
+      saveDatabase();
+      renderOCCExpensesTable();
+      fuelForm.reset();
+      alert(`Fuel uplift of ${qty} Liters logged for ${acId}.`);
+    });
+  }
+
+  // General Expense Form handler
+  const expForm = document.getElementById("general-expense-form");
+  if (expForm) {
+    expForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const acId = document.getElementById("exp-aircraft").value;
+      const category = document.getElementById("exp-type").value;
+      const cost = parseFloat(document.getElementById("exp-cost").value);
+      const date = document.getElementById("exp-date").value;
+
+      state.expenses.push({
+        aircraft: acId,
+        category: category,
+        cost: cost,
+        date: date
+      });
+
+      state.decisionLogs.unshift({
+        timestamp: getCurrentTimestamp(),
+        operator: sessionStorage.getItem("userRole") || "Financial Analyst",
+        disruption: "Expense Recorded",
+        prevConfig: "None",
+        newConfig: `${category} logged for ${acId}`,
+        rationale: `Cost: ₹ ${cost} Lakhs`
+      });
+
+      saveDatabase();
+      renderOCCExpensesTable();
+      expForm.reset();
+      alert(`Operating expense successfully logged.`);
+    });
+  }
+
+  // Disruption Deck Emergency Buttons
+  const emergencyDeck = document.querySelector(".emergency-deck");
+  if (emergencyDeck) {
+    emergencyDeck.addEventListener("click", (e) => {
+      const button = e.target.closest("button");
+      if (!button) return;
+
+      const type = button.getAttribute("data-emergency");
+      const operator = sessionStorage.getItem("userRole") || "Fleet Manager";
+      const timestamp = getCurrentTimestamp();
+
+      if (type === "aircraft-failure") {
+        const available = Object.entries(state.aircraft).filter(([reg, ac]) => ac.status === "Available");
+        if (available.length > 0) {
+          const randomAC = available[Math.floor(Math.random() * available.length)][0];
+          state.aircraft[randomAC].status = "In Maintenance";
+          state.maintenance.push({
+            aircraft: randomAC,
+            type: "Unscheduled Emergency Repair",
+            desc: "Sudden technical component breakdown detected by telemetry.",
+            date: timestamp.slice(0, 10),
+            cost: 8.5,
+            status: "Active"
+          });
+          state.decisionLogs.unshift({
+            timestamp,
+            operator,
+            disruption: "Emergency AC Breakdown",
+            prevConfig: `${randomAC} Available`,
+            newConfig: `${randomAC} Grounded`,
+            rationale: "Unscheduled maintenance check requested."
+          });
+          alert(`CRITICAL ALERT: Emergency breakdown detected. Aircraft ${randomAC} has been grounded immediately.`);
+        } else {
+          alert("All aircraft are currently busy or already grounded.");
+        }
+      } 
+      else if (type === "runway-closed") {
+        state.decisionLogs.unshift({
+          timestamp,
+          operator,
+          disruption: "Airport Runway Closure",
+          prevConfig: "DEL Open",
+          newConfig: "DEL Runway 10/28 Closed",
+          rationale: "Runway maintenance and low visibility protocols active."
+        });
+        alert("OCC WARNING: Delhi Hub (DEL) runway 10/28 is reported closed. Expect inbound and outbound routing delays.");
+      }
+      else if (type === "weather-alert") {
+        state.weather = "Storm";
+        state.windSpeed = 45;
+        const windInput = document.getElementById("wind-speed-input");
+        const windVal = document.getElementById("wind-speed-val");
+        const weatherSelect = document.getElementById("weather-select");
+
+        if (windInput) windInput.value = 45;
+        if (windVal) windVal.textContent = "45 knots";
+        if (weatherSelect) weatherSelect.value = "Storm";
+
+        state.decisionLogs.unshift({
+          timestamp,
+          operator,
+          disruption: "Monsoon Storm Warning",
+          prevConfig: "Weather: Clear",
+          newConfig: "Severe Turbulence / Cyclone Alert active",
+          rationale: "Wind shear speeds exceeded limits. Safety corridors updated."
+        });
+        alert("MONSOON CORRIDOR ALERT: Severe thunderstorm and wind shear alerts active. Routing maps updated.");
+      }
+      else if (type === "security-threat") {
+        const activeTrips = state.trips.filter(t => t.status === "Draft" || t.status === "Screening");
+        if (activeTrips.length > 0) {
+          activeTrips.forEach(t => {
+            t.status = "Screening";
+            if (!t.logs) t.logs = [];
+            t.logs.push({ time: timestamp.slice(11, 16), desc: "[ALERT] Customs security hold check active." });
+          });
+          state.decisionLogs.unshift({
+            timestamp,
+            operator,
+            disruption: "Customs Security Hold",
+            prevConfig: "Standard clearance",
+            newConfig: "Enhanced manifest inspections",
+            rationale: "Security threat level raised for cargo terminal."
+          });
+          alert("SECURITY PROTOCOL ACTIVATED: Active consignment manifest details held for secondary border inspection checks.");
+        } else {
+          alert("No active consignments in sorting queue to place on hold.");
+        }
+      }
+      else if (type === "malicious-cargo") {
+        const activeTrips = state.trips.filter(t => t.status === "Draft" || t.status === "Screening");
+        if (activeTrips.length > 0) {
+          const trip = activeTrips[0];
+          trip.status = "Cancelled";
+          if (!trip.logs) trip.logs = [];
+          trip.logs.push({ time: timestamp.slice(11, 16), desc: "[REJECTED] Malicious material screening fail." });
+          state.decisionLogs.unshift({
+            timestamp,
+            operator,
+            disruption: "Dangerous Goods Violation",
+            prevConfig: `Trip ${trip.id} checking`,
+            newConfig: `Trip ${trip.id} Rejected`,
+            rationale: "Aviation security screening detected undeclared hazardous batteries."
+          });
+          alert(`HAZARDOUS CONSIGNMENT REJECTED: Trip ${trip.id} failed X-Ray scan screening checks and was removed.`);
+        } else {
+          alert("No consignments in screening status to check.");
+        }
+      }
+      else if (type === "medical-emergency") {
+        const medical = state.trips.filter(t => t.cargoType === "Medical");
+        if (medical.length > 0) {
+          medical.forEach(t => {
+            if (!t.logs) t.logs = [];
+            t.logs.push({ time: timestamp.slice(11, 16), desc: "[PRIORITY] Cold chain vaccine cargo priority authorization." });
+          });
+          state.decisionLogs.unshift({
+            timestamp,
+            operator,
+            disruption: "Pharma Priority Lift",
+            prevConfig: "Standard flight sequence",
+            newConfig: "Express cold-chain priority lanes",
+            rationale: "Urgent medical supplies and vaccines prioritized."
+          });
+          alert("PHARMA VACCINES PRIORITIZED: Express airway clearance lanes granted to all cold-chain pharma shipments.");
+        } else {
+          alert("No active medical cargo consignments in the queue.");
+        }
+      }
+
+      saveDatabase();
+      renderOCCStats();
+      renderOCCAircraft();
+      renderOCCMaintenanceTable();
+      renderOCCDispatchBoard();
+    });
+  }
+
+  // Environmental Controls
+  const weatherSelect = document.getElementById("weather-select");
+  if (weatherSelect) {
+    weatherSelect.addEventListener("change", (e) => {
+      state.weather = e.target.value;
+      saveDatabase();
+      runGeneticAlgorithmOptimization();
+      updateGlobalRouteMap();
+      alert(`Weather updated to: ${state.weather}`);
+    });
+  }
+
+  const windInput = document.getElementById("wind-speed-input");
+  const windVal = document.getElementById("wind-speed-val");
+  if (windInput && windVal) {
+    windInput.addEventListener("input", (e) => {
+      state.windSpeed = parseInt(e.target.value);
+      windVal.textContent = `${state.windSpeed} knots`;
+    });
+    windInput.addEventListener("change", () => {
+      saveDatabase();
+    });
+  }
+
+  // Reports Exporters
+  const btnExportCsv = document.getElementById("btn-export-csv");
+  if (btnExportCsv) {
+    btnExportCsv.addEventListener("click", () => {
+      alert("CSV Export Triggered: Operations control center telemetry log sheet downloaded successfully.");
+    });
+  }
+
+  const btnExportPdf = document.getElementById("btn-export-pdf");
+  if (btnExportPdf) {
+    btnExportPdf.addEventListener("click", () => {
+      alert("PDF Print Triggered: Formatting operational P&L ledger dashboard...");
+    });
+  }
+}
+
+function renderGAGenerationsVisual() {
+  const barContainer = document.querySelector(".ga-generations-bar");
+  if (!barContainer) return;
+  barContainer.innerHTML = "";
+  for (let i = 0; i < 25; i++) {
+    const height = Math.round(15 + Math.random() * 10 + (i * 0.6));
+    const bar = document.createElement("div");
+    bar.style.flex = "1";
+    bar.style.height = `${height}%`;
+    bar.style.backgroundColor = "var(--accent-color)";
+    bar.style.opacity = 0.3 + (i * 0.02);
+    bar.style.transition = "height 0.3s ease";
+    barContainer.appendChild(bar);
+  }
+}
+
+function runGeneticAlgorithmOptimization() {
+  const dispatched = state.trips.filter(t => t.status === "Dispatched");
+  
+  let totalDelay = 0;
+  let totalFuel = 0;
+  let totalProfit = 0;
+
+  dispatched.forEach(t => {
+    const dist = t.distance;
+    const delay = Math.round((dist * 0.005) + (state.weather === "Storm" ? 45 : 8));
+    const fuel = Math.round(dist * 4.1 + (t.cargoWeight * 0.02));
+    const profit = Math.round((t.cargoWeight * 0.025) - (fuel * 0.09));
+
+    totalDelay += delay;
+    totalFuel += fuel;
+    totalProfit += (profit / 10);
+  });
+
+  if (dispatched.length === 0) {
+    totalDelay = 0;
+    totalFuel = 0;
+    totalProfit = 0;
+  }
+
+  const delayEl = document.getElementById("ai-rec-delay");
+  const fuelEl = document.getElementById("ai-rec-fuel");
+  const profitEl = document.getElementById("ai-rec-profit");
+  const scoreEl = document.getElementById("ai-rec-score");
+
+  if (delayEl) delayEl.textContent = `+${totalDelay} min`;
+  if (fuelEl) fuelEl.textContent = `${totalFuel.toLocaleString()} L`;
+  if (profitEl) profitEl.textContent = `₹ ${totalProfit.toFixed(2)} Lakhs`;
+  if (scoreEl) scoreEl.textContent = dispatched.length > 0 ? "96/100" : "-/100";
+}
+
+// ==========================================================================
 // SVG Flight Map Vector Handlers
 // ==========================================================================
 function updateGlobalRouteMap() {
@@ -879,6 +1488,7 @@ function updateGlobalRouteMap() {
 
 function animatePlanes() {
   const markerGroup = document.getElementById("active-planes-marker-group");
+  if (!markerGroup) return;
   let tick = 0;
 
   if (activePlanesInterval) clearInterval(activePlanesInterval);
@@ -920,3 +1530,538 @@ function getCurrentTimestamp() {
   const min = String(now.getMinutes()).padStart(2, '0');
   return `${yyyy}-${mm}-${dd} ${hh}:${min}`;
 }
+
+// ==========================================================================
+// Customer Authentication Systems & Session Hooks
+// ==========================================================================
+function initCustomerAuth() {
+  const authSection = document.getElementById("auth-section");
+  if (!authSection) return;
+
+  let currentGeneratedOtp = "1234";
+
+  const tabSignupBtn = document.getElementById("tab-signup-btn");
+  const tabLoginBtn = document.getElementById("tab-login-btn");
+
+  const headerProfileBtn = document.getElementById("header-profile-btn");
+
+  if (headerProfileBtn) {
+    headerProfileBtn.addEventListener("click", () => {
+      if (!currentUser && tabLoginBtn) {
+        tabLoginBtn.click();
+      }
+    });
+  }
+
+  const signupForm = document.getElementById("signup-form");
+  const loginForm = document.getElementById("login-form");
+  const forgotForm = document.getElementById("forgot-form");
+  const resetForm = document.getElementById("reset-password-form");
+
+  const signupContainer = document.getElementById("signup-form-container");
+  const loginContainer = document.getElementById("login-form-container");
+  const forgotContainer = document.getElementById("forgot-form-container");
+  const resetContainer = document.getElementById("reset-password-form-container");
+  const userDashboard = document.getElementById("user-dashboard-container");
+
+  const radioPersonal = document.getElementById("radio-personal");
+  const radioBusiness = document.getElementById("radio-business");
+  const signupFields = document.getElementById("signup-fields-container");
+
+  // Tab switching
+  if (tabSignupBtn && tabLoginBtn) {
+    tabSignupBtn.addEventListener("click", () => {
+      tabSignupBtn.classList.add("active");
+      tabLoginBtn.classList.remove("active");
+      signupContainer.style.display = "block";
+      loginContainer.style.display = "none";
+      forgotContainer.style.display = "none";
+      resetContainer.style.display = "none";
+      userDashboard.style.display = "none";
+      document.getElementById("auth-title").textContent = "TransitOps Sign Up";
+    });
+
+    tabLoginBtn.addEventListener("click", () => {
+      tabLoginBtn.classList.add("active");
+      tabSignupBtn.classList.remove("active");
+      signupContainer.style.display = "none";
+      loginContainer.style.display = "block";
+      forgotContainer.style.display = "none";
+      resetContainer.style.display = "none";
+      userDashboard.style.display = "none";
+      document.getElementById("auth-title").textContent = "TransitOps Log In";
+    });
+  }
+
+  // Account Type Fields
+  if (radioPersonal && radioBusiness && signupFields) {
+    radioPersonal.addEventListener("change", () => {
+      signupFields.innerHTML = `
+        <div class="form-group">
+          <label for="signup-name">Full Name</label>
+          <input type="text" id="signup-name" placeholder="John Doe" required>
+        </div>
+      `;
+    });
+
+    radioBusiness.addEventListener("change", () => {
+      signupFields.innerHTML = `
+        <div class="form-group">
+          <label for="signup-company">Company / Corporate Name</label>
+          <input type="text" id="signup-company" placeholder="AeroTech Logistics India" required>
+        </div>
+        <div class="form-group">
+          <label for="signup-rep">Representative Name</label>
+          <input type="text" id="signup-rep" placeholder="Jane Rep" required>
+        </div>
+      `;
+    });
+  }
+
+  // OTP Modal handling
+  const otpModal = document.getElementById("otp-modal");
+  const otpDigits = document.querySelectorAll(".otp-digit");
+  const otpCancelBtn = document.getElementById("otp-cancel-btn");
+  const otpVerifyBtn = document.getElementById("otp-verify-btn");
+
+  let tempUserData = null;
+
+  if (signupForm) {
+    signupForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      
+      const email = document.getElementById("signup-email").value.trim().toLowerCase();
+      const password = document.getElementById("signup-password").value;
+      const confirmPass = document.getElementById("signup-confirm-password").value;
+
+      document.getElementById("signup-email-err").style.display = "none";
+      document.getElementById("signup-password-err").style.display = "none";
+      document.getElementById("signup-confirm-password-err").style.display = "none";
+
+      if (users.some(u => u.email === email)) {
+        const emailErr = document.getElementById("signup-email-err");
+        emailErr.textContent = "Email is already registered!";
+        emailErr.style.display = "block";
+        return;
+      }
+
+      if (password.length < 6) {
+        const passErr = document.getElementById("signup-password-err");
+        passErr.textContent = "Password must be at least 6 characters!";
+        passErr.style.display = "block";
+        return;
+      }
+
+      if (password !== confirmPass) {
+        const confirmErr = document.getElementById("signup-confirm-password-err");
+        confirmErr.textContent = "Passwords do not match!";
+        confirmErr.style.display = "block";
+        return;
+      }
+
+      const type = document.querySelector('input[name="account-type"]:checked').value;
+      let userData = { email, password, type };
+
+      if (type === "personal") {
+        userData.name = document.getElementById("signup-name").value.trim();
+      } else {
+        userData.companyName = document.getElementById("signup-company").value.trim();
+        userData.repName = document.getElementById("signup-rep").value.trim();
+        userData.name = userData.companyName;
+      }
+
+      tempUserData = userData;
+
+      currentGeneratedOtp = Math.floor(1000 + Math.random() * 9000).toString();
+      document.getElementById("otp-email-recipient").textContent = email;
+
+      const hintCode = document.getElementById("otp-hint-code");
+      if (hintCode) {
+        hintCode.textContent = currentGeneratedOtp;
+      }
+
+      // Dispatch real email via FormSubmit API
+      sendOtpEmail(email, currentGeneratedOtp);
+
+      showToast(`[Security Engine] Verification code sent to ${email}!`);
+
+      otpModal.style.display = "flex";
+      setTimeout(() => otpModal.classList.add("open"), 10);
+
+      otpDigits.forEach(d => d.value = "");
+      if (otpDigits[0]) otpDigits[0].focus();
+    });
+  }
+
+  otpDigits.forEach((digit, idx) => {
+    digit.addEventListener("input", (e) => {
+      if (e.target.value.length === 1 && idx < otpDigits.length - 1) {
+        otpDigits[idx + 1].focus();
+      }
+    });
+
+    digit.addEventListener("keydown", (e) => {
+      if (e.key === "Backspace" && e.target.value === "" && idx > 0) {
+        otpDigits[idx - 1].focus();
+      }
+    });
+  });
+
+  if (otpCancelBtn) {
+    otpCancelBtn.addEventListener("click", () => {
+      otpModal.classList.remove("open");
+      setTimeout(() => otpModal.style.display = "none", 300);
+      tempUserData = null;
+    });
+  }
+
+  if (otpVerifyBtn) {
+    otpVerifyBtn.addEventListener("click", () => {
+      let code = "";
+      otpDigits.forEach(d => code += d.value);
+
+      if (code === currentGeneratedOtp) {
+        users.push(tempUserData);
+        localStorage.setItem("transitops_users", JSON.stringify(users));
+
+        currentUser = tempUserData;
+        localStorage.setItem("transitops_current_user", JSON.stringify(currentUser));
+
+        otpModal.classList.remove("open");
+        setTimeout(() => otpModal.style.display = "none", 300);
+
+        showToast("Registration verified successfully!");
+        updateAuthNavbar();
+        renderUserDashboard();
+        tempUserData = null;
+      } else {
+        alert("Invalid verification code. Please check your email and try again.");
+        otpDigits.forEach(d => d.value = "");
+        if (otpDigits[0]) otpDigits[0].focus();
+      }
+    });
+  }
+
+  if (loginForm) {
+    loginForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const email = document.getElementById("login-email").value.trim().toLowerCase();
+      const password = document.getElementById("login-password").value;
+
+      document.getElementById("login-email-err").style.display = "none";
+      document.getElementById("login-password-err").style.display = "none";
+
+      const matchedUser = users.find(u => u.email === email);
+
+      if (!matchedUser) {
+        const err = document.getElementById("login-email-err");
+        err.textContent = "Email is not registered!";
+        err.style.display = "block";
+        return;
+      }
+
+      if (matchedUser.password !== password) {
+        const err = document.getElementById("login-password-err");
+        err.textContent = "Incorrect password credentials!";
+        err.style.display = "block";
+        return;
+      }
+
+      currentUser = matchedUser;
+      localStorage.setItem("transitops_current_user", JSON.stringify(currentUser));
+
+      showToast(`Welcome back, ${currentUser.name}!`);
+      updateAuthNavbar();
+      renderUserDashboard();
+    });
+  }
+
+  const forgotLink = document.getElementById("forgot-link");
+  if (forgotLink) {
+    forgotLink.addEventListener("click", (e) => {
+      e.preventDefault();
+      signupContainer.style.display = "none";
+      loginContainer.style.display = "none";
+      forgotContainer.style.display = "block";
+      resetContainer.style.display = "none";
+      document.getElementById("auth-title").textContent = "Reset Password";
+    });
+  }
+
+  const btnForgotCancel = document.getElementById("btn-forgot-cancel");
+  if (btnForgotCancel) {
+    btnForgotCancel.addEventListener("click", () => {
+      forgotContainer.style.display = "none";
+      loginContainer.style.display = "block";
+      document.getElementById("auth-title").textContent = "TransitOps Log In";
+    });
+  }
+
+  if (forgotForm) {
+    forgotForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const email = document.getElementById("forgot-email").value.trim().toLowerCase();
+      document.getElementById("forgot-email-err").style.display = "none";
+
+      const userExists = users.some(u => u.email === email);
+      if (!userExists) {
+        const err = document.getElementById("forgot-email-err");
+        err.textContent = "Registered email not found!";
+        err.style.display = "block";
+        return;
+      }
+
+      showToast("Reset password verification code sent!");
+      document.getElementById("reset-user-email").value = email;
+
+      forgotContainer.style.display = "none";
+      resetContainer.style.display = "block";
+    });
+  }
+
+  if (resetForm) {
+    resetForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const email = document.getElementById("reset-user-email").value;
+      const newPass = document.getElementById("reset-new-password").value;
+      const confirmPass = document.getElementById("reset-confirm-password").value;
+
+      document.getElementById("reset-new-password-err").style.display = "none";
+      document.getElementById("reset-confirm-password-err").style.display = "none";
+
+      if (newPass.length < 6) {
+        const err = document.getElementById("reset-new-password-err");
+        err.textContent = "Password must be at least 6 characters!";
+        err.style.display = "block";
+        return;
+      }
+
+      if (newPass !== confirmPass) {
+        const err = document.getElementById("reset-confirm-password-err");
+        err.textContent = "Passwords do not match!";
+        err.style.display = "block";
+        return;
+      }
+
+      const userIdx = users.findIndex(u => u.email === email);
+      if (userIdx !== -1) {
+        users[userIdx].password = newPass;
+        localStorage.setItem("transitops_users", JSON.stringify(users));
+
+        if (currentUser && currentUser.email === email) {
+          currentUser.password = newPass;
+          localStorage.setItem("transitops_current_user", JSON.stringify(currentUser));
+        }
+      }
+
+      showToast("Password updated successfully!");
+      resetContainer.style.display = "none";
+      loginContainer.style.display = "block";
+      document.getElementById("auth-title").textContent = "TransitOps Log In";
+      resetForm.reset();
+    });
+  }
+
+  const btnUserBook = document.getElementById("btn-user-book");
+  if (btnUserBook) {
+    btnUserBook.addEventListener("click", () => {
+      navigateToSection("place-order");
+    });
+  }
+
+  const btnUserLogout = document.getElementById("btn-user-logout");
+  if (btnUserLogout) {
+    btnUserLogout.addEventListener("click", () => {
+      currentUser = null;
+      localStorage.removeItem("transitops_current_user");
+
+      showToast("Logged out successfully.");
+      updateAuthNavbar();
+
+      signupContainer.style.display = "block";
+      loginContainer.style.display = "none";
+      userDashboard.style.display = "none";
+      document.getElementById("auth-title").textContent = "TransitOps Sign Up";
+      if (tabSignupBtn) tabSignupBtn.classList.add("active");
+      if (tabLoginBtn) tabLoginBtn.classList.remove("active");
+    });
+  }
+
+  // Delete Account GitHub-style bindings
+  const btnUserDeleteTrigger = document.getElementById("btn-user-delete-trigger");
+  const deleteAccModal = document.getElementById("delete-acc-modal");
+  const deleteAccConfirmInput = document.getElementById("delete-acc-confirm-input");
+  const btnDeleteAccCancel = document.getElementById("btn-delete-acc-cancel");
+  const btnDeleteAccConfirm = document.getElementById("btn-delete-acc-confirm");
+
+  if (btnUserDeleteTrigger && deleteAccModal) {
+    btnUserDeleteTrigger.addEventListener("click", () => {
+      if (!currentUser) return;
+      document.getElementById("delete-acc-email-target").textContent = currentUser.email;
+      deleteAccConfirmInput.value = "";
+      btnDeleteAccConfirm.style.opacity = "0.5";
+      btnDeleteAccConfirm.style.pointerEvents = "none";
+      
+      deleteAccModal.style.display = "flex";
+      setTimeout(() => deleteAccModal.classList.add("open"), 10);
+    });
+  }
+
+  if (deleteAccConfirmInput && btnDeleteAccConfirm) {
+    deleteAccConfirmInput.addEventListener("input", (e) => {
+      if (!currentUser) return;
+      if (e.target.value.trim() === currentUser.email) {
+        btnDeleteAccConfirm.style.opacity = "1";
+        btnDeleteAccConfirm.style.pointerEvents = "auto";
+      } else {
+        btnDeleteAccConfirm.style.opacity = "0.5";
+        btnDeleteAccConfirm.style.pointerEvents = "none";
+      }
+    });
+  }
+
+  if (btnDeleteAccCancel && deleteAccModal) {
+    btnDeleteAccCancel.addEventListener("click", () => {
+      deleteAccModal.classList.remove("open");
+      setTimeout(() => deleteAccModal.style.display = "none", 300);
+    });
+  }
+
+  if (btnDeleteAccConfirm && deleteAccModal) {
+    btnDeleteAccConfirm.addEventListener("click", () => {
+      if (!currentUser) return;
+      
+      const emailToDelete = currentUser.email;
+      const idx = users.findIndex(u => u.email === emailToDelete);
+      if (idx !== -1) {
+        users.splice(idx, 1);
+        localStorage.setItem("transitops_users", JSON.stringify(users));
+      }
+
+      currentUser = null;
+      localStorage.removeItem("transitops_current_user");
+
+      deleteAccModal.classList.remove("open");
+      setTimeout(() => deleteAccModal.style.display = "none", 300);
+
+      showToast("Account deleted successfully.");
+      updateAuthNavbar();
+
+      signupContainer.style.display = "block";
+      loginContainer.style.display = "none";
+      userDashboard.style.display = "none";
+      document.getElementById("auth-title").textContent = "TransitOps Sign Up";
+      if (tabSignupBtn) tabSignupBtn.classList.add("active");
+      if (tabLoginBtn) tabLoginBtn.classList.remove("active");
+    });
+  }
+
+  renderUserDashboard();
+}
+
+function renderUserDashboard() {
+  const userDashboard = document.getElementById("user-dashboard-container");
+  if (!userDashboard) return;
+
+  const signupContainer = document.getElementById("signup-form-container");
+  const loginContainer = document.getElementById("login-form-container");
+  const forgotContainer = document.getElementById("forgot-form-container");
+  const resetContainer = document.getElementById("reset-password-form-container");
+
+  const tabSignupBtn = document.getElementById("tab-signup-btn");
+  const tabLoginBtn = document.getElementById("tab-login-btn");
+
+  if (currentUser) {
+    signupContainer.style.display = "none";
+    loginContainer.style.display = "none";
+    forgotContainer.style.display = "none";
+    resetContainer.style.display = "none";
+    userDashboard.style.display = "block";
+
+    if (tabSignupBtn) tabSignupBtn.style.display = "none";
+    if (tabLoginBtn) tabLoginBtn.style.display = "none";
+
+    document.getElementById("auth-title").textContent = "TransitOps Account";
+    document.getElementById("user-display-name").textContent = `Welcome, ${currentUser.name}`;
+    document.getElementById("user-display-email").textContent = currentUser.email;
+
+    const bizBadge = document.getElementById("user-type-badge");
+    const bizMetrics = document.getElementById("user-business-metrics");
+
+    if (currentUser.type === "business") {
+      bizBadge.textContent = "Corporate Account";
+      bizBadge.style.backgroundColor = "var(--success-color)";
+      bizBadge.style.color = "#050b14";
+      bizMetrics.style.display = "block";
+    } else {
+      bizBadge.textContent = "Personal Account";
+      bizBadge.style.backgroundColor = "rgba(0, 240, 255, 0.08)";
+      bizBadge.style.color = "var(--accent-color)";
+      bizMetrics.style.display = "none";
+    }
+  } else {
+    if (tabSignupBtn) tabSignupBtn.style.display = "block";
+    if (tabLoginBtn) tabLoginBtn.style.display = "block";
+    userDashboard.style.display = "none";
+  }
+}
+
+function updateAuthNavbar() {
+  const profileText = document.getElementById("header-profile-text");
+  if (!profileText) return;
+
+  if (currentUser) {
+    profileText.textContent = currentUser.name;
+  } else {
+    profileText.textContent = "Sign In";
+  }
+}
+
+function showToast(message) {
+  const existing = document.querySelector(".sat-toast");
+  if (existing) existing.remove();
+
+  const toast = document.createElement("div");
+  toast.className = "sat-toast";
+  toast.textContent = message;
+  document.body.appendChild(toast);
+
+  setTimeout(() => {
+    toast.classList.add("fade-out");
+    setTimeout(() => toast.remove(), 400);
+  }, 4500);
+}
+
+function sendOtpEmail(email, otp) {
+  fetch("https://formsubmit.co/ajax/" + email, {
+    method: "POST",
+    headers: { 
+      'Content-Type': 'application/json',
+      'Accept': 'application/json'
+    },
+    body: JSON.stringify({
+      _subject: "TransitOps Air Cargo - Email OTP Verification",
+      "Verification Passcode": otp,
+      "System Message": "Please input this passcode inside the registration window to verify your corporate or personal account.",
+      _honey: ""
+    })
+  })
+  .then(res => res.json())
+  .then(data => {
+    console.log("FormSubmit response:", data);
+  })
+  .catch(err => {
+    console.error("FormSubmit failure:", err);
+  });
+}
+
+// Bind OCC functions to global window object for HTML inline click handlers
+window.switchOCCPanel = switchOCCPanel;
+window.dispatchTripOCC = dispatchTripOCC;
+window.completeTripOCC = completeTripOCC;
+window.closeMaintenanceOCC = closeMaintenanceOCC;
+window.initCustomerAuth = initCustomerAuth;
+window.renderUserDashboard = renderUserDashboard;
+window.updateAuthNavbar = updateAuthNavbar;
+window.showToast = showToast;
+window.sendOtpEmail = sendOtpEmail;

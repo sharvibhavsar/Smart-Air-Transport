@@ -49,6 +49,12 @@
   --success-glow: rgba(22, 163, 74, 0.1);
 }
 
+[data-theme="light"] .btn-primary,
+[data-theme="light"] .btn-hud-action:hover,
+[data-theme="light"] .btn-hud-action.active {
+  color: #ffffff !important;
+}
+
 /* Base resets & layout */
 * {
   box-sizing: border-box;
@@ -840,3 +846,135 @@ footer {
   table.occ-table th { background: #f0f0f0 !important; color: #000000 !important; border-bottom: 2px solid #000000 !important; }
   table.occ-table td { border-bottom: 1px solid #cccccc !important; color: #000000 !important; }
 }
+
+/* Authentication Tab Switcher */
+.auth-tabs button {
+  transition: all 0.3s ease;
+}
+
+/* Form Validation & Error Styling */
+input.invalid, select.invalid, textarea.invalid {
+  border-color: var(--danger-color) !important;
+  box-shadow: 0 0 0 3px rgba(255, 0, 85, 0.15) !important;
+}
+
+input.valid, select.valid, textarea.valid {
+  border-color: var(--success-color) !important;
+}
+
+/* OTP Modal Animation States */
+.otp-modal-overlay.open {
+  opacity: 1 !important;
+  pointer-events: auto !important;
+}
+
+.otp-digit {
+  transition: all 0.2s ease;
+}
+
+.otp-digit:focus {
+  border-color: var(--accent-color) !important;
+  box-shadow: 0 0 0 3px var(--border-color) !important;
+  transform: scale(1.05);
+}
+
+/* Toast Notifications */
+.sat-toast {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  background-color: var(--accent-color);
+  color: #050b14;
+  padding: 1.25rem 2rem;
+  border-radius: 10px;
+  font-weight: 600;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+  z-index: 1100;
+  animation: toastSlideIn 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+  max-width: 380px;
+  border: 1px solid var(--border-color);
+}
+
+/* Special text color overrides for light mode to keep high readability */
+[data-theme="light"] .sat-toast {
+  color: #f4f7fa;
+  background-color: #1e293b;
+}
+
+@keyframes toastSlideIn {
+  from {
+    transform: translateY(20px) scale(0.9);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+.sat-toast.fade-out {
+  animation: toastFadeOut 0.3s ease forwards;
+}
+
+@keyframes toastFadeOut {
+  to {
+    transform: translateY(-10px) scale(0.95);
+    opacity: 0;
+  }
+}
+
+/* Button visibility improvements for Header profile and Theme toggle buttons */
+#header-profile-btn {
+  background: rgba(0, 240, 255, 0.08) !important;
+  border: 1.5px solid var(--accent-color) !important;
+  color: #ffffff !important;
+  box-shadow: 0 0 10px rgba(0, 240, 255, 0.25) !important;
+  font-weight: 700 !important;
+}
+
+#header-profile-btn:hover {
+  background: var(--accent-color) !important;
+  color: #050b14 !important;
+  box-shadow: 0 0 18px rgba(0, 240, 255, 0.6) !important;
+}
+
+/* Light Theme overrides for Profile Button to ensure high contrast/readability */
+[data-theme="light"] #header-profile-btn {
+  background: rgba(30, 41, 59, 0.06) !important;
+  border-color: var(--accent-color) !important;
+  color: var(--accent-color) !important;
+  box-shadow: 0 2px 8px rgba(30, 41, 59, 0.1) !important;
+}
+
+[data-theme="light"] #header-profile-btn:hover {
+  background: var(--accent-color) !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 12px rgba(30, 41, 59, 0.2) !important;
+}
+
+/* Theme Toggle Button custom adjustments */
+.theme-toggle-btn {
+  background: rgba(0, 240, 255, 0.05) !important;
+  border: 1px solid var(--border-color) !important;
+  color: #ffffff !important;
+}
+
+.theme-toggle-btn:hover {
+  background: rgba(0, 240, 255, 0.15) !important;
+  border-color: var(--accent-color) !important;
+  box-shadow: 0 0 10px rgba(0, 240, 255, 0.4) !important;
+}
+
+[data-theme="light"] .theme-toggle-btn {
+  background: rgba(30, 41, 59, 0.05) !important;
+  border-color: rgba(30, 41, 59, 0.1) !important;
+  color: var(--accent-color) !important;
+}
+
+[data-theme="light"] .theme-toggle-btn:hover {
+  background: rgba(30, 41, 59, 0.12) !important;
+  border-color: var(--accent-color) !important;
+  box-shadow: 0 2px 8px rgba(30, 41, 59, 0.15) !important;
+}
+
+
