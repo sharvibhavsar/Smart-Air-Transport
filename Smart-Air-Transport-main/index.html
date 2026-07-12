@@ -3,13 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Smart Air Transport - AI Cargo Operations Control Center</title>
+  <title>Smart Air Transport - Air Cargo Fleet Management Platform</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-  <!-- Navigation Header -->
-  <header>
+  <!-- Navigation Header (Hidden when logged out, managed by JS) -->
+  <header id="app-header" style="display: none;">
     <div class="nav-container">
       <a class="logo" id="logo-nav">
         <svg viewBox="0 0 24 24">
@@ -27,25 +27,27 @@
 
       <!-- Navigation Links -->
       <nav class="nav-links" id="nav-menu">
+        <li class="nav-item" id="nav-dashboard-tab"><a class="nav-link" data-section="dashboard" href="#dashboard">Dashboard</a></li>
+        <li class="nav-item" id="nav-aircraft-tab"><a class="nav-link" data-section="aircraft" href="#aircraft">Aircraft</a></li>
+        <li class="nav-item" id="nav-pilots-tab"><a class="nav-link" data-section="pilots" href="#pilots">Pilots</a></li>
+        <li class="nav-item" id="nav-trips-tab"><a class="nav-link" data-section="trips" href="#trips">Trips</a></li>
+        <li class="nav-item" id="nav-maintenance-tab"><a class="nav-link" data-section="maintenance" href="#maintenance">Maintenance</a></li>
+        <li class="nav-item" id="nav-expenses-tab"><a class="nav-link" data-section="expenses" href="#expenses">Expenses</a></li>
+        <li class="nav-item" id="nav-reports-tab"><a class="nav-link" data-section="reports" href="#reports">Reports</a></li>
+        <li class="nav-item" id="nav-occ-tab"><a class="nav-link" data-section="occ" href="#occ">OCC Operations</a></li>
         <li class="nav-item">
-          <a class="nav-link active" data-section="home" href="#home">Home</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" data-section="place-order" href="#place-order">Book Cargo</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" data-section="track-order" href="#track-order">Track Cargo</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" data-section="occ" href="#occ" id="occ-nav-link">OCC Operations</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="test.html" target="_blank" style="color: var(--warning-glow); font-weight: bold;">Run Tests</a>
+          <a class="nav-link" href="test.html" target="_blank" style="color: var(--warning-color); font-weight: bold;">Run Tests</a>
         </li>
       </nav>
 
       <!-- Header Action Items -->
       <div class="header-actions">
+        <!-- Role Badge Display -->
+        <div class="hud-badge" id="active-role-badge" style="margin-bottom: 0; padding: 0.25rem 0.75rem;">Guest</div>
+        
+        <!-- Log Out Button -->
+        <button class="btn btn-hud-action" id="btn-header-logout" style="font-size: 0.8rem; padding: 0.4rem 0.8rem;">Sign Out</button>
+
         <!-- Theme Toggle Button -->
         <button class="theme-toggle-btn" id="theme-btn" aria-label="Toggle color theme">
           <svg class="moon-icon" viewBox="0 0 24 24">
@@ -62,352 +64,760 @@
   <!-- Main Content Areas -->
   <main>
     
-    <!-- Home / Dashboard Section -->
-    <section class="app-section active" id="home-section">
-      <div class="hero-content">
-        <div class="hero-text">
-          <div class="hud-badge">Logistics Decision Intelligence</div>
-          <h1>Smart Air Transport</h1>
-          <p>AI-Powered Cargo Airline Operations Control Center for India's high-density domestic trunk routes. Dynamic rescheduling, constraint validation, and multi-objective optimization.</p>
-          <div class="hero-ctas">
-            <button class="btn btn-primary" id="cta-place-order">Book Cargo</button>
-            <button class="btn btn-secondary" id="cta-track-order">Track Cargo</button>
-            <button class="btn btn-hud" id="cta-occ">Enter OCC Command Deck</button>
-          </div>
-        </div>
-        <div class="hero-illustration">
-          <div class="card-decoration glass-card">
-            <h3>Live OCC Fleet Summary</h3>
-            <div class="summary-box" style="margin-top: 1rem;">
-              <div class="summary-row">
-                <span>Active Trunk Flights</span>
-                <strong style="color: var(--accent-color);" id="active-flights-count">4 Jets</strong>
-              </div>
-              <div class="summary-row">
-                <span>Network Fuel Load</span>
-                <strong id="avg-fuel-stat">0 L</strong>
-              </div>
-              <div class="summary-row">
-                <span>Cargo Queue Size</span>
-                <strong id="pending-cargo-stat">0 Packages</strong>
-              </div>
-              <div class="summary-row">
-                <span>System Health Score</span>
-                <strong style="color: var(--success-glow);">98/100</strong>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Feature grid cards -->
-      <div class="features-grid">
-        <div class="feature-card glass-card">
-          <div class="feature-icon">✈️</div>
-          <h3>Narrow-Body Fleet</h3>
-          <p>Exclusively operating dedicated A321P2F, B737-800BCF, A320P2F, and B757-200 narrow-body freighters optimized for Indian metro routes.</p>
-        </div>
-        <div class="feature-card glass-card">
-          <div class="feature-icon">🧠</div>
-          <h3>Genetic Optimization</h3>
-          <p>Multi-objective Genetic Algorithm models profit, fuel consumption, crew risk, and schedule delay to recommend optimal flights.</p>
-        </div>
-        <div class="feature-card glass-card">
-          <div class="feature-icon">🛡️</div>
-          <h3>Dynamic Rescheduling</h3>
-          <p>Immediate operational re-optimization for weather alerts, crew shortage, runway closures, and dangerous goods restrictions.</p>
-        </div>
-      </div>
-    </section>
-
-    <!-- Place Order Section -->
-    <section class="app-section" id="place-order-section">
-      <div class="section-header">
-        <h2>Book Air Cargo Space</h2>
-        <p>Queue cargo shipments for screening, constraint validation, and AI slot assignment.</p>
-      </div>
-
-      <div class="form-container glass-card">
-        <form id="order-form">
-          <div class="form-row">
-            <div class="form-group">
-              <label for="sender-name">Sender Name</label>
-              <input type="text" id="sender-name" placeholder="IndiPharm Laboratories" required>
-            </div>
-            <div class="form-group">
-              <label for="receiver-name">Receiver Name</label>
-              <input type="text" id="receiver-name" placeholder="Express Distribution Services" required>
-            </div>
-          </div>
-
-          <div class="form-row">
-            <div class="form-group">
-              <label for="origin-airport">Origin Hub (India)</label>
-              <select id="origin-airport" required>
-                <option value="" disabled selected>Select Origin</option>
-                <option value="BOM">Mumbai Hub (BOM)</option>
-                <option value="AMD">Ahmedabad Hub (AMD)</option>
-                <option value="BLR">Bengaluru Hub (BLR)</option>
-                <option value="DEL">Delhi Hub (DEL)</option>
-                <option value="CCU">Kolkata Hub (CCU)</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label for="destination-airport">Destination Hub (India)</label>
-              <select id="destination-airport" required>
-                <option value="" disabled selected>Select Destination</option>
-                <option value="BOM">Mumbai Hub (BOM)</option>
-                <option value="AMD">Ahmedabad Hub (AMD)</option>
-                <option value="BLR">Bengaluru Hub (BLR)</option>
-                <option value="DEL">Delhi Hub (DEL)</option>
-                <option value="CCU">Kolkata Hub (CCU)</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="form-row">
-            <div class="form-group">
-              <label for="package-weight">Cargo Weight (tonnes)</label>
-              <input type="number" id="package-weight" min="0.1" max="30" step="0.1" placeholder="4.5 tonnes" required>
-            </div>
-            <div class="form-group">
-              <label for="cargo-type">Cargo Type</label>
-              <select id="cargo-type" required>
-                <option value="" disabled selected>Select Cargo Type</option>
-                <option value="Medical">Medical Supplies</option>
-                <option value="Perishable">Perishables / Cold Chain</option>
-                <option value="Express">Express E-Commerce</option>
-                <option value="Standard">Standard Cargo</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="form-row">
-            <div class="form-group">
-              <label>Cargo Dimensions (meters)</label>
-              <div class="dimension-inputs" style="display: flex; gap: 0.5rem;">
-                <input type="number" id="package-len" min="0.1" step="0.1" placeholder="L (m)" required>
-                <input type="number" id="package-wid" min="0.1" step="0.1" placeholder="W (m)" required>
-                <input type="number" id="package-hei" min="0.1" step="0.1" placeholder="H (m)" required>
-              </div>
-            </div>
-            <div class="form-group">
-              <label for="delivery-deadline">Delivery Deadline</label>
-              <input type="datetime-local" id="delivery-deadline" required>
-            </div>
-          </div>
-
-          <div class="form-row" style="align-items: center; margin-bottom: 1rem;">
-            <div class="form-group checkbox-group">
-              <input type="checkbox" id="hazardous-flag" style="width: auto; margin-right: 0.5rem;">
-              <label for="hazardous-flag" style="display: inline-block;">Hazardous / Dangerous Goods (DG)</label>
-            </div>
-            <div class="form-group checkbox-group">
-              <input type="checkbox" id="perishable-flag" style="width: auto; margin-right: 0.5rem;">
-              <label for="perishable-flag" style="display: inline-block;">Requires Cold Storage</label>
-            </div>
-          </div>
-
-          <!-- Latest Acceptance Time (LAT) Panel -->
-          <div class="summary-box lat-box" id="lat-feedback-box" style="display: none; background: rgba(10, 37, 64, 0.4); border: 1px solid var(--accent-color);">
-            <h4 style="margin-bottom: 0.5rem; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 0.5px; color: var(--accent-color);">Latest Booking Acceptance Time (LAT) Check</h4>
-            <div class="summary-row">
-              <span>Next Flight Scheduled Departure:</span>
-              <strong id="next-flight-dep">-</strong>
-            </div>
-            <div class="summary-row">
-              <span>Road Pickup & Processing Delays:</span>
-              <span id="road-pickup-time">2h 00m</span>
-            </div>
-            <div class="summary-row">
-              <span>Warehouse Processing:</span>
-              <span id="warehouse-time">0h 45m</span>
-            </div>
-            <div class="summary-row">
-              <span>Security Screening:</span>
-              <span id="security-time">0h 30m</span>
-            </div>
-            <div class="summary-row">
-              <span>Loading & Safety Buffer:</span>
-              <span id="loading-safety-time">0h 45m (20m Load + 25m Buffer)</span>
-            </div>
-            <div class="summary-row" style="border-top: 1px dashed var(--border-color); padding-top: 0.5rem; font-weight: bold;">
-              <span>Latest Acceptance Deadline:</span>
-              <span id="lat-deadline-disp">-</span>
-            </div>
-            <div class="summary-row" id="lat-status-row" style="border-top: 1px solid var(--border-color); padding-top: 0.5rem; margin-top: 0.5rem;">
-              <span>Acceptance Feasibility:</span>
-              <strong id="lat-feasibility">-</strong>
-            </div>
-          </div>
-
-          <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1.5rem;">Submit Booking to Screening</button>
-        </form>
-
-        <!-- Order Success Screen -->
-        <div class="success-screen" id="order-success" style="display: none;">
-          <div class="success-icon">✓</div>
-          <h3>Cargo Booking Logged</h3>
-          <p>Your cargo transport request has been queued. Security screening process has commenced.</p>
-          
-          <div class="tracking-code-container">
-            <span class="tracking-code" id="success-tracking-id">SAT-4820-BOM</span>
-            <button class="copy-btn" id="copy-tracking-btn" title="Copy to clipboard">
-              <svg viewBox="0 0 24 24">
-                <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
-              </svg>
-            </button>
-          </div>
-
-          <!-- Security Screening Live Display -->
-          <div class="screening-live-panel glass-card" style="margin-bottom: 2rem; padding: 1.5rem; text-align: left;">
-            <h4 style="margin-bottom: 1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;">Security Screening Pipeline</h4>
-            <div class="screening-steps">
-              <div class="screening-step" id="scr-xray"><span class="bullet">○</span> X-Ray Inspection: <strong class="scr-status">Pending</strong></div>
-              <div class="screening-step" id="scr-dg"><span class="bullet">○</span> Dangerous Goods Detection: <strong class="scr-status">Pending</strong></div>
-              <div class="screening-step" id="scr-docs"><span class="bullet">○</span> Documentation Verification: <strong class="scr-status">Pending</strong></div>
-              <div class="screening-step" id="scr-manual"><span class="bullet">○</span> Manual Inspection: <strong class="scr-status">Not required</strong></div>
-            </div>
-            <div style="margin-top: 1rem; border-top: 1px dashed var(--border-color); padding-top: 0.5rem;">
-              <span>Overall Screening Outcome:</span>
-              <strong id="screening-outcome-disp" style="float: right; color: var(--warning-glow);">Scanning...</strong>
-            </div>
-          </div>
-
-          <div style="display: flex; gap: 1rem; justify-content: center;">
-            <button class="btn btn-primary" id="success-track-btn">Track Live Status</button>
-            <button class="btn btn-secondary" id="success-new-order-btn">Book Another Cargo</button>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Track Order Section -->
-    <section class="app-section" id="track-order-section">
-      <div class="section-header">
-        <h2>Cargo Consignment Tracker</h2>
-        <p>Monitor real-time status, security checks, assigned flights, and dispatcher decision logs.</p>
-      </div>
-
-      <div class="form-container glass-card" style="max-width: 800px;">
-        <div class="tracker-search-box">
-          <input type="text" id="tracker-input" placeholder="Enter Tracking Code (e.g. SAT-1002-DEL)" autocomplete="off">
-          <button class="btn btn-primary" id="tracker-search-btn">Locate Cargo</button>
-        </div>
-
-        <div id="tracker-empty" style="text-align: center; padding: 2rem 0; color: var(--text-muted);">
-          <svg viewBox="0 0 24 24" style="width: 64px; height: 64px; fill: currentColor; margin-bottom: 1rem; opacity: 0.5;">
-            <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
-          </svg>
-          <p>Enter a cargo tracking ID to inspect dispatch and routing progress.</p>
-          <p style="font-size: 0.85rem; margin-top: 0.5rem;">Sample tracking code: <strong style="cursor: pointer; text-decoration: underline;" id="sample-track-code">SAT-8291-BOM</strong></p>
-        </div>
-
-        <!-- Tracking Visual Card -->
-        <div id="tracker-result" style="display: none;" class="tracking-card">
-          <div class="tracking-meta">
-            <div class="meta-group">
-              <h4>Cargo Tracking ID</h4>
-              <p id="track-id-disp">SAT-XXXX-XX</p>
-            </div>
-            <div class="meta-group">
-              <h4>Classification</h4>
-              <p id="track-priority-disp">Express Priority</p>
-            </div>
-            <div class="meta-group" style="text-align: right;">
-              <h4>Estimated Delivery</h4>
-              <p id="track-delivery-disp">Calculating...</p>
-            </div>
-          </div>
-
-          <!-- Progress Timeline -->
-          <div class="timeline">
-            <div class="timeline-progress" id="progress-line"></div>
-            
-            <div class="timeline-step" id="step-0">
-              <div class="step-node">1</div>
-              <div class="step-label">Booked</div>
-            </div>
-            <div class="timeline-step" id="step-1">
-              <div class="step-node">2</div>
-              <div class="step-label">Screening</div>
-            </div>
-            <div class="timeline-step" id="step-2">
-              <div class="step-node">3</div>
-              <div class="step-label">Assigned</div>
-            </div>
-            <div class="timeline-step" id="step-3">
-              <div class="step-node">4</div>
-              <div class="step-label">Loading</div>
-            </div>
-            <div class="timeline-step" id="step-4">
-              <div class="step-node">5</div>
-              <div class="step-label">In Flight</div>
-            </div>
-            <div class="timeline-step" id="step-5">
-              <div class="step-node">6</div>
-              <div class="step-label">Delivered</div>
-            </div>
-          </div>
-
-          <!-- Cargo & Route Info -->
-          <div class="summary-box" style="margin-bottom: 2rem;">
-            <div class="summary-row">
-              <span>Trunk Routing</span>
-              <strong id="track-origin-disp">-</strong>
-            </div>
-            <div class="summary-row">
-              <span>Assigned Aircraft</span>
-              <strong id="track-aircraft-disp">-</strong>
-            </div>
-            <div class="summary-row">
-              <span>Specifications</span>
-              <span id="track-package-disp">-</span>
-            </div>
-            <div class="summary-row">
-              <span>Hazardous Status</span>
-              <span id="track-haz-disp">-</span>
-            </div>
-          </div>
-
-          <!-- Transit History Logs -->
-          <div class="tracking-logs">
-            <h3>Operations Log Registry</h3>
-            <div id="tracking-logs-container">
-              <!-- Dynamically populated -->
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- OCC Operations Section -->
-    <section class="app-section" id="occ-section">
-      <!-- Admin Login Card -->
-      <div class="form-container glass-card" id="admin-login-card" style="max-width: 450px; margin: 4rem auto; text-align: center;">
-        <div class="hud-badge" style="margin-bottom: 1rem;">SECURE ACCESS ONLY</div>
-        <h2 style="font-family: monospace; text-transform: uppercase; margin-bottom: 0.5rem; font-size: 1.5rem;">Admin Authorization</h2>
-        <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 2rem;">Please enter password to gain access to the OCC Command Deck.</p>
+    <!-- SECTION 1: Secure Login Page (Default Visible) -->
+    <section class="app-section active" id="login-section">
+      <div class="form-container glass-card" style="max-width: 460px; margin: 4rem auto; text-align: center;">
+        <div class="hud-badge" style="margin-bottom: 1.5rem;">TransitOps Security Access</div>
+        <h2>Aviation Platform Login</h2>
+        <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 2rem;">Access requires authentication. Use roles credentials below to login.</p>
         
-        <form id="admin-login-form">
+        <form id="app-login-form">
           <div class="form-group" style="text-align: left;">
-            <label for="admin-password">Secure Password</label>
-            <input type="password" id="admin-password" placeholder="••••••••" style="font-family: monospace;" required>
-            <div id="login-error-disp" style="color: var(--danger-color); font-size: 0.85rem; margin-top: 0.5rem; display: none; font-weight: bold; font-family: monospace;">Invalid admin password. Access Denied.</div>
+            <label for="login-email">Aviation Email Address</label>
+            <input type="email" id="login-email" placeholder="manager@transitops.com" required>
           </div>
-          <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Authorize Access</button>
+          <div class="form-group" style="text-align: left;">
+            <label for="login-password">Password</label>
+            <input type="password" id="login-password" placeholder="••••••••" required>
+          </div>
+          <div id="login-error-disp" style="color: var(--danger-color); font-size: 0.85rem; margin-bottom: 1rem; display: none; font-family: var(--font-mono); font-weight: bold;">Invalid email or password. Access Denied.</div>
+          <button type="submit" class="btn btn-primary" style="width: 100%;">Authenticate User</button>
         </form>
+
+        <div style="margin-top: 2rem; border-top: 1px solid var(--border-color); padding-top: 1.5rem; text-align: left;">
+          <h4 style="font-size: 0.8rem; text-transform: uppercase; color: var(--warning-color); margin-bottom: 0.5rem; font-family: var(--font-mono);">Preloaded Test Credentials:</h4>
+          <div class="credential-hint-row" style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-secondary); line-height: 1.6;">
+            • Fleet Manager: <strong style="cursor: pointer; color: var(--accent-color);" onclick="fillCreds('manager@transitops.com', 'manager123')">manager@transitops.com (manager123)</strong><br>
+            • Dispatch Manager: <strong style="cursor: pointer; color: var(--accent-color);" onclick="fillCreds('dispatcher@transitops.com', 'dispatcher123')">dispatcher@transitops.com (dispatcher123)</strong><br>
+            • Safety Officer: <strong style="cursor: pointer; color: var(--accent-color);" onclick="fillCreds('safety@transitops.com', 'safety123')">safety@transitops.com (safety123)</strong><br>
+            • Financial Analyst: <strong style="cursor: pointer; color: var(--accent-color);" onclick="fillCreds('finance@transitops.com', 'finance123')">finance@transitops.com (finance123)</strong>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 2: Dashboard Overview -->
+    <section class="app-section" id="dashboard-section">
+      <div class="section-header">
+        <h2 style="font-family: var(--font-mono);">Aviation Operations Dashboard</h2>
+        <p>Real-time analytics, fleet stats, and flight monitoring indicators.</p>
+      </div>
+
+      <!-- KPI Dashboard Grid -->
+      <div class="recomm-metrics-grid" style="grid-template-columns: repeat(5, 1fr); margin-bottom: 2rem;">
+        <div class="recomm-metric">
+          <span class="label">Active Aircraft</span>
+          <strong id="kpi-active-aircraft">0</strong>
+        </div>
+        <div class="recomm-metric">
+          <span class="label">Available Aircraft</span>
+          <strong id="kpi-avail-aircraft">0</strong>
+        </div>
+        <div class="recomm-metric">
+          <span class="label">In Maintenance</span>
+          <strong id="kpi-maint-aircraft">0</strong>
+        </div>
+        <div class="recomm-metric">
+          <span class="label">Active Trips</span>
+          <strong id="kpi-active-trips">0</strong>
+        </div>
+        <div class="recomm-metric">
+          <span class="label">Pending Trips</span>
+          <strong id="kpi-pending-trips">0</strong>
+        </div>
+        <div class="recomm-metric">
+          <span class="label">Pilots On Duty</span>
+          <strong id="kpi-pilots-duty">0</strong>
+        </div>
+        <div class="recomm-metric">
+          <span class="label">Fleet Utilization</span>
+          <strong id="kpi-fleet-util">0%</strong>
+        </div>
+        <div class="recomm-metric">
+          <span class="label">Total Fuel Logged</span>
+          <strong id="kpi-fuel-cons">0 L</strong>
+        </div>
+        <div class="recomm-metric">
+          <span class="label">Operational Cost</span>
+          <strong id="kpi-op-cost">₹ 0 Lakhs</strong>
+        </div>
+        <div class="recomm-metric">
+          <span class="label">On-Time Delivery</span>
+          <strong id="kpi-ot-rate">100%</strong>
+        </div>
+      </div>
+
+      <!-- Filters & Analytics layout -->
+      <div class="occ-layout-grid">
+        <div class="occ-column left-col" style="grid-column: span 2;">
+          <div class="occ-panel glass-card">
+            <div class="panel-header">
+              <h3>Fleet KPI Metrics Filtering</h3>
+            </div>
+            <div class="environmental-tuning-row" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem;">
+              <div class="tuning-group">
+                <label for="filter-aircraft-type">Aircraft Type</label>
+                <select id="filter-aircraft-type">
+                  <option value="All">All Types</option>
+                  <option value="A321P2F">Airbus A321P2F</option>
+                  <option value="B737-800BCF">Boeing 737</option>
+                  <option value="A320P2F">Airbus A320P2F</option>
+                  <option value="B757-200(PCF)">Boeing 757</option>
+                </select>
+              </div>
+              <div class="tuning-group">
+                <label for="filter-aircraft-status">Aircraft Status</label>
+                <select id="filter-aircraft-status">
+                  <option value="All">All Statuses</option>
+                  <option value="Available">Available</option>
+                  <option value="On Trip">On Trip</option>
+                  <option value="In Maintenance">In Maintenance</option>
+                </select>
+              </div>
+              <div class="tuning-group">
+                <label for="filter-hub">Airport Hub</label>
+                <select id="filter-hub">
+                  <option value="All">All Hubs</option>
+                  <option value="BOM">BOM (Mumbai)</option>
+                  <option value="DEL">DEL (Delhi)</option>
+                  <option value="AMD">AMD (Ahmedabad)</option>
+                  <option value="BLR">BLR (Bengaluru)</option>
+                  <option value="CCU">CCU (Kolkata)</option>
+                </select>
+              </div>
+              <div class="tuning-group" style="align-self: end;">
+                <button class="btn btn-primary" id="btn-apply-dashboard-filters" style="width: 100%; padding: 0.5rem;">Apply Filters</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Canvas Analytics charts -->
+          <div class="occ-panel glass-card" style="margin-top: 1.5rem;">
+            <div class="panel-header">
+              <h3>Utilization & Cost Share</h3>
+            </div>
+            <div style="display: flex; gap: 2rem; justify-content: center; align-items: center; min-height: 220px;">
+              <div style="text-align: center;">
+                <canvas id="chart-utilization" width="160" height="160" style="background: rgba(0,0,0,0.15); border-radius: 50%;"></canvas>
+                <h4 style="font-size: 0.85rem; margin-top: 0.5rem; text-transform: uppercase;">Flight Hours Distribution</h4>
+              </div>
+              <div style="text-align: center;">
+                <canvas id="chart-costs" width="160" height="160" style="background: rgba(0,0,0,0.15); border-radius: 50%;"></canvas>
+                <h4 style="font-size: 0.85rem; margin-top: 0.5rem; text-transform: uppercase;">Operational Cost breakdown</h4>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent activities & log registry -->
+        <div class="occ-column right-col">
+          <div class="occ-panel glass-card" style="min-height: 395px;">
+            <div class="panel-header">
+              <h3>Live Operations Overview</h3>
+            </div>
+            <div id="dashboard-recent-trips-list" style="display: flex; flex-direction: column; gap: 0.75rem;">
+              <!-- Javascript populates -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 3: Aircraft Registry CRUD -->
+    <section class="app-section" id="aircraft-section">
+      <div class="section-header">
+        <h2>Aircraft Registry</h2>
+        <p>Maintain the master registry of the narrow-body freighter fleet.</p>
+      </div>
+
+      <div class="occ-layout-grid">
+        <div class="occ-column left-col" style="grid-column: span 2;">
+          <div class="occ-panel glass-card">
+            <div class="panel-header">
+              <h3>Registered Aircraft Assets</h3>
+            </div>
+            <div class="flight-list-container">
+              <table class="occ-table">
+                <thead>
+                  <tr>
+                    <th>Registration No</th>
+                    <th>Model Name</th>
+                    <th>Type</th>
+                    <th>Max Payload</th>
+                    <th>Odometer/Hours</th>
+                    <th>Current Airport</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="aircraft-table-body">
+                  <!-- JS populated -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="occ-column right-col">
+          <div class="occ-panel glass-card">
+            <div class="panel-header">
+              <h3 id="aircraft-form-title">Register New Aircraft</h3>
+            </div>
+            <form id="aircraft-crud-form">
+              <input type="hidden" id="aircraft-edit-id">
+              <div class="form-group">
+                <label for="ac-reg">Registration Number (Unique)</label>
+                <input type="text" id="ac-reg" placeholder="e.g. VT-SAT01" required>
+              </div>
+              <div class="form-group">
+                <label for="ac-name">Aircraft Name / Descriptor</label>
+                <input type="text" id="ac-name" placeholder="e.g. Star Express" required>
+              </div>
+              <div class="form-group">
+                <label for="ac-model">Aircraft Model</label>
+                <select id="ac-model" required>
+                  <option value="Airbus A321P2F">Airbus A321P2F</option>
+                  <option value="Boeing 737-800BCF">Boeing 737-800BCF</option>
+                  <option value="Airbus A320P2F">Airbus A320P2F</option>
+                  <option value="Boeing 757-200(PCF)">Boeing 757-200(PCF)</option>
+                </select>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="ac-payload">Payload Capacity (kg)</label>
+                  <input type="number" id="ac-payload" min="100" max="100000" placeholder="23000" required>
+                </div>
+                <div class="form-group">
+                  <label for="ac-fuelcap">Fuel Capacity (L)</label>
+                  <input type="number" id="ac-fuelcap" min="100" max="200000" placeholder="12000" required>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="ac-hours">Current Flying Hours</label>
+                  <input type="number" id="ac-hours" min="0" value="0" required>
+                </div>
+                <div class="form-group">
+                  <label for="ac-acqcost">Acquisition Cost (₹ Lakhs)</label>
+                  <input type="number" id="ac-acqcost" min="1" placeholder="450" required>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="ac-home">Home Hub</label>
+                  <select id="ac-home" required>
+                    <option value="BOM">Mumbai (BOM)</option>
+                    <option value="DEL">Delhi (DEL)</option>
+                    <option value="AMD">Ahmedabad (AMD)</option>
+                    <option value="BLR">Bengaluru (BLR)</option>
+                    <option value="CCU">Kolkata (CCU)</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="ac-status">Asset Status</label>
+                  <select id="ac-status" required>
+                    <option value="Available">Available</option>
+                    <option value="On Trip">On Trip</option>
+                    <option value="In Maintenance">In Maintenance</option>
+                    <option value="Retired">Retired</option>
+                  </select>
+                </div>
+              </div>
+              <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Save Aircraft Asset</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 4: Pilot Management CRUD -->
+    <section class="app-section" id="pilots-section">
+      <div class="section-header">
+        <h2>Pilot Management Registry</h2>
+        <p>Register aircrew, monitor safety records, and track pilot certifications validity.</p>
+      </div>
+
+      <div class="occ-layout-grid">
+        <div class="occ-column left-col" style="grid-column: span 2;">
+          <div class="occ-panel glass-card">
+            <div class="panel-header">
+              <h3>Flight Pilot Directory</h3>
+            </div>
+            <div class="flight-list-container">
+              <table class="occ-table">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>License Number</th>
+                    <th>License Expiry</th>
+                    <th>Medical Expiry</th>
+                    <th>Hours Flown</th>
+                    <th>Safety Score</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="pilots-table-body">
+                  <!-- JS populated -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="occ-column right-col">
+          <div class="occ-panel glass-card">
+            <div class="panel-header">
+              <h3 id="pilot-form-title">Register Flight Crew</h3>
+            </div>
+            <form id="pilot-crud-form">
+              <input type="hidden" id="pilot-edit-id">
+              <div class="form-group">
+                <label for="plt-name">Pilot Full Name</label>
+                <input type="text" id="plt-name" placeholder="e.g. Captain Alex" required>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="plt-license">License Number</label>
+                  <input type="text" id="plt-license" placeholder="AL-98745-DEL" required>
+                </div>
+                <div class="form-group">
+                  <label for="plt-category">License Category</label>
+                  <select id="plt-category" required>
+                    <option value="Commercial Pilot License (CPL)">Commercial (CPL)</option>
+                    <option value="Airline Transport Pilot License (ATPL)">Airline Transport (ATPL)</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="plt-license-exp">License Expiry Date</label>
+                  <input type="date" id="plt-license-exp" required>
+                </div>
+                <div class="form-group">
+                  <label for="plt-medical-exp">Medical Expiry Date</label>
+                  <input type="date" id="plt-medical-exp" required>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="plt-hours">Total Flying Hours</label>
+                  <input type="number" id="plt-hours" min="0" value="0" required>
+                </div>
+                <div class="form-group">
+                  <label for="plt-safety">Safety Rating Score (1-100)</label>
+                  <input type="number" id="plt-safety" min="0" max="100" value="100" required>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="plt-contact">Contact Phone</label>
+                  <input type="text" id="plt-contact" placeholder="9876543210" required>
+                </div>
+                <div class="form-group">
+                  <label for="plt-status">Crew Duty Status</label>
+                  <select id="plt-status" required>
+                    <option value="Available">Available</option>
+                    <option value="On Trip">On Trip</option>
+                    <option value="Off Duty">Off Duty</option>
+                    <option value="Suspended">Suspended</option>
+                  </select>
+                </div>
+              </div>
+              <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Save Pilot Profile</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 5: Cargo Trip Management -->
+    <section class="app-section" id="trips-section">
+      <div class="section-header">
+        <h2>Cargo Dispatch & Trip Board</h2>
+        <p>Plan flights, validate aviation constraints, review AI routing, and track the dispatch lifecycle.</p>
+      </div>
+
+      <div class="occ-layout-grid">
+        <div class="occ-column left-col">
+          <div class="occ-panel glass-card">
+            <div class="panel-header">
+              <h3>Create Cargo Trip</h3>
+            </div>
+            
+            <form id="trip-dispatch-form">
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="trip-origin">Origin Hub</label>
+                  <select id="trip-origin" required>
+                    <option value="" disabled selected>Select Origin</option>
+                    <option value="BOM">Mumbai (BOM)</option>
+                    <option value="AMD">Ahmedabad (AMD)</option>
+                    <option value="BLR">Bengaluru (BLR)</option>
+                    <option value="DEL">Delhi (DEL)</option>
+                    <option value="CCU">Kolkata (CCU)</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="trip-destination">Destination Hub</label>
+                  <select id="trip-destination" required>
+                    <option value="" disabled selected>Select Destination</option>
+                    <option value="BOM">Mumbai (BOM)</option>
+                    <option value="AMD">Ahmedabad (AMD)</option>
+                    <option value="BLR">Bengaluru (BLR)</option>
+                    <option value="DEL">Delhi (DEL)</option>
+                    <option value="CCU">Kolkata (CCU)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="trip-cargo-weight">Cargo Weight (kg)</label>
+                  <input type="number" id="trip-cargo-weight" min="1" max="100000" placeholder="18000" required>
+                </div>
+                <div class="form-group">
+                  <label for="trip-priority">Cargo Priority</label>
+                  <select id="trip-priority" required>
+                    <option value="Express">Express Cargo (Aviation Core)</option>
+                    <option value="Standard">Standard Cargo</option>
+                    <option value="Medical">Medical Supplies</option>
+                    <option value="Perishable">Perishable Goods</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="trip-aircraft">Assign Aircraft</label>
+                  <select id="trip-aircraft" required>
+                    <option value="" disabled selected>Select Available Aircraft</option>
+                    <!-- JS populated -->
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="trip-pilot">Assign Pilot</label>
+                  <select id="trip-pilot" required>
+                    <option value="" disabled selected>Select Certified Pilot</option>
+                    <!-- JS populated -->
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="trip-distance">Flight Distance (km)</label>
+                  <input type="number" id="trip-distance" min="10" placeholder="760" required>
+                </div>
+                <div class="form-group">
+                  <label for="trip-departure">Scheduled Departure</label>
+                  <input type="datetime-local" id="trip-departure" required>
+                </div>
+              </div>
+
+              <button type="submit" class="btn btn-hud" style="width: 100%; margin-top: 1rem;" id="btn-request-ai-rec">Evaluate AI Route Recommendation</button>
+            </form>
+          </div>
+
+          <!-- AI Recommendation Panel -->
+          <div class="occ-panel glass-card ai-recommendation-panel" id="dispatch-ai-rec-box" style="margin-top: 1.5rem; display: none;">
+            <div class="panel-header">
+              <h3>AI Recommendation Analysis</h3>
+              <div class="ai-chip">GA Optimizer</div>
+            </div>
+            <div class="recomm-metrics-grid" style="grid-template-columns: 1fr 1fr;">
+              <div class="recomm-metric">
+                <span class="label">Recommended Aircraft</span>
+                <strong id="ai-trip-rec-aircraft">-</strong>
+              </div>
+              <div class="recomm-metric">
+                <span class="label">Recommended Route</span>
+                <strong id="ai-trip-rec-route">-</strong>
+              </div>
+              <div class="recomm-metric">
+                <span class="label">Expected Flight Delay</span>
+                <strong id="ai-trip-rec-delay">-</strong>
+              </div>
+              <div class="recomm-metric">
+                <span class="label">Estimated Fuel quantity</span>
+                <strong id="ai-trip-rec-fuel">-</strong>
+              </div>
+              <div class="recomm-metric">
+                <span class="label">Expected Net Profit</span>
+                <strong id="ai-trip-rec-profit">-</strong>
+              </div>
+              <div class="recomm-metric">
+                <span class="label">Operational Risk Score</span>
+                <strong id="ai-trip-rec-score">-</strong>
+              </div>
+            </div>
+            <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+              <button class="btn btn-primary" id="btn-accept-dispatch" style="flex: 1;">Accept AI Recommendation</button>
+              <button class="btn btn-secondary" id="btn-override-dispatch" style="flex: 1;">Override / Dispatch Manually</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="occ-column right-col">
+          <div class="occ-panel glass-card" style="min-height: 480px;">
+            <div class="panel-header">
+              <h3>Active Flight Logs & Trips Board</h3>
+            </div>
+            <div class="flight-list-container">
+              <table class="occ-table">
+                <thead>
+                  <tr>
+                    <th>Trip ID</th>
+                    <th>Details</th>
+                    <th>Aircraft/Pilot</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="trips-table-body">
+                  <!-- JS populated -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 6: Maintenance Log -->
+    <section class="app-section" id="maintenance-section">
+      <div class="section-header">
+        <h2>Maintenance Deck</h2>
+        <p>Log aircraft service checks, inspections, and A/C checks. Active maintenance automatically grounds aircraft.</p>
+      </div>
+
+      <div class="occ-layout-grid">
+        <div class="occ-column left-col" style="grid-column: span 2;">
+          <div class="occ-panel glass-card">
+            <div class="panel-header">
+              <h3>Aircraft Maintenance Registry</h3>
+            </div>
+            <div class="flight-list-container">
+              <table class="occ-table">
+                <thead>
+                  <tr>
+                    <th>Aircraft Reg</th>
+                    <th>Check Type</th>
+                    <th>Maintenance Details</th>
+                    <th>Grounded Date</th>
+                    <th>Cost (₹ Lakhs)</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="maintenance-table-body">
+                  <!-- JS populated -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="occ-column right-col">
+          <div class="occ-panel glass-card">
+            <div class="panel-header">
+              <h3>File Maintenance Log</h3>
+            </div>
+            <form id="maintenance-log-form">
+              <div class="form-group">
+                <label for="maint-aircraft">Select Aircraft</label>
+                <select id="maint-aircraft" required>
+                  <option value="" disabled selected>Select Aircraft</option>
+                  <!-- JS populated -->
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="maint-type">Service Check Category</label>
+                <select id="maint-type" required>
+                  <option value="Engine Inspection">Engine Inspection</option>
+                  <option value="Landing Gear Check">Landing Gear Check</option>
+                  <option value="Oil Replacement">Oil Replacement</option>
+                  <option value="Hydraulic Inspection">Hydraulic Inspection</option>
+                  <option value="A Check">A Check (Standard Service)</option>
+                  <option value="C Check">C Check (Heavy Service)</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="maint-cost">Estimated Service Cost (₹ Lakhs)</label>
+                <input type="number" id="maint-cost" min="0.1" step="0.1" placeholder="4.5" required>
+              </div>
+              <div class="form-group">
+                <label for="maint-desc">Technical Description</label>
+                <textarea id="maint-desc" placeholder="Details of issues or regular checks..." required></textarea>
+              </div>
+              <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Ground Aircraft for Maintenance</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 7: Expenses & Fuel logs -->
+    <section class="app-section" id="expenses-section">
+      <div class="section-header">
+        <h2>Expense & Fuel Management Deck</h2>
+        <p>Log fuel purchases and operating expenses (Hangar, Handling, Crew, Landing, Parking).</p>
+      </div>
+
+      <div class="occ-layout-grid">
+        <div class="occ-column left-col">
+          <div class="occ-panel glass-card">
+            <div class="panel-header">
+              <h3>Log Fuel Uplift</h3>
+            </div>
+            <form id="fuel-log-form">
+              <div class="form-group">
+                <label for="fuel-aircraft">Select Aircraft</label>
+                <select id="fuel-aircraft" required>
+                  <option value="" disabled selected>Select Aircraft</option>
+                  <!-- JS populated -->
+                </select>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="fuel-qty">Fuel Quantity (Liters)</label>
+                  <input type="number" id="fuel-qty" min="1" placeholder="4650" required>
+                </div>
+                <div class="form-group">
+                  <label for="fuel-cost">Fuel Cost (₹ Lakhs)</label>
+                  <input type="number" id="fuel-cost" min="0.1" step="0.1" placeholder="4.4" required>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="fuel-date">Transaction Date</label>
+                  <input type="date" id="fuel-date" required>
+                </div>
+                <div class="form-group">
+                  <label for="fuel-hub">Hub Airport</label>
+                  <select id="fuel-hub" required>
+                    <option value="AMD">Ahmedabad (AMD)</option>
+                    <option value="DEL">Delhi (DEL)</option>
+                    <option value="BOM">Mumbai (BOM)</option>
+                    <option value="BLR">Bengaluru (BLR)</option>
+                    <option value="CCU">Kolkata (CCU)</option>
+                  </select>
+                </div>
+              </div>
+              <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Log Fuel Transaction</button>
+            </form>
+          </div>
+
+          <div class="occ-panel glass-card" style="margin-top: 1.5rem;">
+            <div class="panel-header">
+              <h3>Log General Operating Expense</h3>
+            </div>
+            <form id="general-expense-form">
+              <div class="form-group">
+                <label for="exp-aircraft">Select Aircraft</label>
+                <select id="exp-aircraft" required>
+                  <!-- JS populated -->
+                </select>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="exp-type">Expense Category</label>
+                  <select id="exp-type" required>
+                    <option value="Hangar Charges">Hangar Charges</option>
+                    <option value="Airport Handling Fees">Airport Handling Fees</option>
+                    <option value="Crew Expenses">Crew Expenses</option>
+                    <option value="Landing Charges">Landing Charges</option>
+                    <option value="Parking Charges">Parking Charges</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="exp-cost">Cost Amount (₹ Lakhs)</label>
+                  <input type="number" id="exp-cost" min="0.01" step="0.01" placeholder="0.25" required>
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="exp-date">Expense Date</label>
+                <input type="date" id="exp-date" required>
+              </div>
+              <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Log Expense Item</button>
+            </form>
+          </div>
+        </div>
+
+        <div class="occ-column right-col">
+          <div class="occ-panel glass-card" style="min-height: 520px;">
+            <div class="panel-header">
+              <h3>Fleet Expense & Fuel Log Sheets</h3>
+            </div>
+            <div class="flight-list-container">
+              <table class="occ-table">
+                <thead>
+                  <tr>
+                    <th>Reg / Details</th>
+                    <th>Category</th>
+                    <th>Amount</th>
+                    <th>Date</th>
+                  </tr>
+                </thead>
+                <tbody id="expenses-table-body">
+                  <!-- JS populated -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 8: Reports & Analytics -->
+    <section class="app-section" id="reports-section">
+      <div class="section-header">
+        <h2>Aviation Reports & Analytical Panel</h2>
+        <p>Overview of fuel efficiency, fleet utilization, operating cost structure, and aircraft ROI metrics.</p>
+      </div>
+
+      <div class="occ-panel glass-card">
+        <div class="panel-header">
+          <h3>Fleet Performance Analytics</h3>
+          <div style="display: flex; gap: 0.5rem;">
+            <button class="btn btn-hud-action" id="btn-export-csv">Export Reports CSV</button>
+            <button class="btn btn-hud-action" id="btn-export-pdf">Print PDF Report</button>
+          </div>
+        </div>
+        
+        <div class="flight-list-container printable-report-sheet">
+          <h2 class="print-only" style="margin-bottom: 1rem; border-bottom: 2px solid #000; padding-bottom: 0.5rem;">Smart Air Cargo Fleet Operations Audit Report</h2>
+          <table class="occ-table" id="reports-table-disp">
+            <thead>
+              <tr>
+                <th>Registration</th>
+                <th>Distance Flown</th>
+                <th>Fuel Consumption</th>
+                <th>Fuel Efficiency (km/L)</th>
+                <th>Revenue Generated</th>
+                <th>Maintenance Cost</th>
+                <th>Total Fuel Cost</th>
+                <th>Operating Costs</th>
+                <th>Asset ROI</th>
+              </tr>
+            </thead>
+            <tbody id="reports-table-body">
+              <!-- JS populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 9: Operations Control Center (OCC) Dashboard -->
+    <section class="app-section" id="occ-section">
+      <div class="section-header" style="position: relative;">
+        <h2 style="font-family: var(--font-mono); letter-spacing: -1px; text-transform: uppercase;">Operations Control Center (OCC)</h2>
+        <p>Live aircraft telemetry map, airfield slot status deck, and disruption emergency overrides.</p>
       </div>
 
       <!-- Real-Time Dashboard Layout Grid -->
-      <div class="occ-dashboard-container" id="admin-occ-dashboard" style="display: none;">
-        <div class="section-header" style="position: relative; margin-bottom: 2rem;">
-          <h2 style="font-family: monospace; letter-spacing: -1px; text-transform: uppercase;">Operations Control Center (OCC)</h2>
-          <p>Live fleet coordination, slot management, and AI Genetic Rescheduling Console.</p>
-          <button class="btn btn-secondary" id="btn-admin-logout" style="position: absolute; right: 0; top: 10px; font-size: 0.8rem; padding: 0.4rem 0.8rem;">Log Out Admin</button>
-        </div>
-
-        <div class="occ-layout-grid">
+      <div class="occ-layout-grid">
         
         <!-- COLUMN 1: Fleet & Flights (Left) -->
         <div class="occ-column left-col">
@@ -415,35 +825,32 @@
           <!-- Fleet Control Deck -->
           <div class="occ-panel glass-card">
             <div class="panel-header">
-              <h3>Fleet Control Deck</h3>
-              <div class="active-badge">4 Narrow-Body Jets</div>
+              <h3>Fleet Telemetry Deck</h3>
             </div>
-            <div class="fleet-grid" id="fleet-container">
+            <div class="fleet-grid" id="occ-fleet-container">
               <!-- JS Populated Fleet Cards -->
             </div>
           </div>
 
-          <!-- Flight Control Deck -->
+          <!-- Active Flight Board -->
           <div class="occ-panel glass-card" style="margin-top: 1.5rem;">
             <div class="panel-header">
-              <h3>Active Flight Schedule Board</h3>
+              <h3>Operational Flights Status Board</h3>
               <button class="btn btn-hud-action" id="btn-reoptimize-ga" style="font-size: 0.8rem; padding: 0.4rem 0.8rem;">Run GA Re-Optimization</button>
             </div>
             <div class="flight-list-container">
-              <table class="occ-table" id="flight-table">
+              <table class="occ-table">
                 <thead>
                   <tr>
-                    <th>Flight</th>
+                    <th>Flight ID</th>
                     <th>Route</th>
                     <th>Departure</th>
-                    <th>Aircraft</th>
-                    <th>Load %</th>
-                    <th>Delay</th>
+                    <th>Odometer/Hours</th>
                     <th>Lock</th>
-                    <th>Actions</th>
+                    <th>Control Actions</th>
                   </tr>
                 </thead>
-                <tbody id="flight-table-body">
+                <tbody id="occ-flight-table-body">
                   <!-- Dynamic rows -->
                 </tbody>
               </table>
@@ -457,7 +864,7 @@
           <!-- Live Route Network Map -->
           <div class="occ-panel glass-card map-panel">
             <div class="panel-header">
-              <h3>Live Network Route Map</h3>
+              <h3>Live SVG Network Route Map</h3>
               <div class="map-legend">
                 <span class="legend-item"><span class="dot normal"></span> Normal</span>
                 <span class="legend-item"><span class="dot congested"></span> Congested</span>
@@ -468,7 +875,6 @@
             
             <div class="svg-map-wrapper">
               <svg viewBox="0 0 500 500" class="india-route-map" id="route-map-svg">
-                <!-- Outer borders and backgrounds defined in CSS -->
                 <!-- Routes -->
                 <path d="M 240,100 L 150,340" id="route-DEL-BOM" class="map-route-line" />
                 <path d="M 240,100 L 140,230" id="route-DEL-AMD" class="map-route-line" />
@@ -503,41 +909,40 @@
                   <text y="-12" class="hub-label">BLR</text>
                 </g>
 
-                <!-- Active Flying Planes (Animated dynamically via JS) -->
+                <!-- Active Flying Planes -->
                 <g id="active-planes-group"></g>
               </svg>
             </div>
           </div>
 
-          <!-- Environment & Controls Deck (Weather / Slot / Emergency) -->
+          <!-- Disruption Event Controls Deck -->
           <div class="occ-panel glass-card" style="margin-top: 1.5rem;">
             <div class="panel-header">
-              <h3>Incident & Disruption Control Deck</h3>
+              <h3>Incident Disruption Emergency Deck</h3>
             </div>
             
-            <!-- Quick Crisis Actions -->
             <div class="emergency-deck">
-              <button class="btn btn-danger" data-emergency="aircraft-failure">Aircraft Breakdown</button>
+              <button class="btn btn-danger" data-emergency="aircraft-failure">Aircraft Breakdowns</button>
               <button class="btn btn-danger" data-emergency="runway-closed">Runway Closed (DEL)</button>
-              <button class="btn btn-danger" data-emergency="security-threat">Security Threat</button>
-              <button class="btn btn-danger" data-emergency="malicious-cargo">Malicious Cargo</button>
-              <button class="btn btn-danger" data-emergency="medical-emergency">Medical Emergency</button>
-              <button class="btn btn-danger" data-emergency="fuel-shortage">Fuel Shortage</button>
-              <button class="btn btn-danger" data-emergency="bird-strike">Bird Strike (BOM)</button>
-              <button class="btn btn-danger" data-emergency="weather-alert">Severe Storm System</button>
+              <button class="btn btn-danger" data-emergency="security-threat">Security Threat Check</button>
+              <button class="btn btn-danger" data-emergency="malicious-cargo">Malicious Cargo Intercept</button>
+              <button class="btn btn-danger" data-emergency="medical-emergency">Medical Vaccine Emergency</button>
+              <button class="btn btn-danger" data-emergency="fuel-shortage">Jet Fuel Shortage Warning</button>
+              <button class="btn btn-danger" data-emergency="bird-strike">Bird Strike Damage (BOM)</button>
+              <button class="btn btn-danger" data-emergency="weather-alert">Monsoon Storm Event</button>
             </div>
 
-            <!-- Manual Controls for Custom Tuning -->
+            <!-- Tuning parameters -->
             <div class="environmental-tuning-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1rem; border-top: 1px solid var(--border-color); padding-top: 1rem;">
               <div>
-                <h4 style="font-size: 0.85rem; margin-bottom: 0.5rem; text-transform: uppercase;">Weather Control</h4>
+                <h4 style="font-size: 0.85rem; margin-bottom: 0.5rem; text-transform: uppercase;">Storm Controls</h4>
                 <div class="tuning-group">
-                  <label for="weather-select">Select Global Weather:</label>
+                  <label for="weather-select">Global Weather Status:</label>
                   <select id="weather-select" style="padding: 0.4rem; font-size: 0.85rem;">
-                    <option value="Normal">Clear Sky (Normal)</option>
-                    <option value="Fog">Heavy Fog (Low Visibility)</option>
-                    <option value="Storm">Severe Thunderstorms (High Wind)</option>
-                    <option value="Heavy Rain">Monsoon Heavy Rain</option>
+                    <option value="Normal">Clear (Normal)</option>
+                    <option value="Fog">Low Visibility (Fog)</option>
+                    <option value="Storm">Heavy Thunderstorms (Storm)</option>
+                    <option value="Heavy Rain">Monsoon Rain</option>
                   </select>
                 </div>
                 <div class="tuning-group" style="margin-top: 0.5rem;">
@@ -547,9 +952,9 @@
               </div>
 
               <div>
-                <h4 style="font-size: 0.85rem; margin-bottom: 0.5rem; text-transform: uppercase;">Airport Slottings</h4>
+                <h4 style="font-size: 0.85rem; margin-bottom: 0.5rem; text-transform: uppercase;">Airport Airfield Tweak</h4>
                 <div class="tuning-group">
-                  <label for="airport-selector">Select Airport to Tweak:</label>
+                  <label for="airport-selector">Select Airport:</label>
                   <select id="airport-selector" style="padding: 0.4rem; font-size: 0.85rem;">
                     <option value="DEL">DEL (Delhi)</option>
                     <option value="BOM">BOM (Mumbai)</option>
@@ -565,61 +970,60 @@
                     <option value="Restricted">Status: Restricted</option>
                     <option value="Closed">Status: Closed</option>
                   </select>
-                  <button class="btn btn-hud-action" id="apply-airport-tweak" style="font-size: 0.85rem; padding: 0.4rem;">Apply</button>
+                  <button class="btn btn-hud-action" id="apply-airport-tweak" style="font-size: 0.85rem; padding: 0.4rem;">Apply Status</button>
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- COLUMN 3: AI Recommendation & Cargo Queue (Right) -->
+        <!-- COLUMN 3: Optimization Convergence & Logger (Right) -->
         <div class="occ-column right-col">
           
-          <!-- AI Decision Support Recommendation Panel -->
-          <div class="occ-panel glass-card ai-recommendation-panel" id="ai-recomm-panel">
+          <!-- Route Control & AI GA Panel -->
+          <div class="occ-panel glass-card ai-recommendation-panel">
             <div class="panel-header">
-              <h3>AI Decision Support Panel</h3>
-              <div class="ai-chip">GA ENGINE ACTIVE</div>
+              <h3>AI Route Optimization Panel</h3>
+              <div class="ai-chip">Genetic Engine</div>
             </div>
             
             <div class="ai-content-body">
               <div class="recomm-header">
-                <h4>Target Optimization Strategy</h4>
-                <p>Maximize Profit & SLA adherence, Minimize Fuel & Delay Risk.</p>
+                <h4>Multi-Objective Optimization Status</h4>
+                <p>Maximize Load Factor & Profits, Minimize Delay Risks.</p>
               </div>
 
-              <div class="recomm-metrics-grid">
+              <div class="recomm-metrics-grid" style="grid-template-columns: 1fr 1fr;">
                 <div class="recomm-metric">
-                  <span class="label">Recommended Aircraft</span>
-                  <strong id="ai-rec-aircraft">-</strong>
+                  <span class="label">AI Selected Fleet</span>
+                  <strong id="ai-rec-aircraft" style="font-size: 0.75rem; white-space: pre-wrap;">-</strong>
                 </div>
                 <div class="recomm-metric">
-                  <span class="label">Recommended Route</span>
-                  <strong id="ai-rec-route">-</strong>
+                  <span class="label">Route Clearance</span>
+                  <strong id="ai-rec-route">Indian Trunk Hubs</strong>
                 </div>
                 <div class="recomm-metric">
                   <span class="label">Expected Flight Delay</span>
                   <strong id="ai-rec-delay">-</strong>
                 </div>
                 <div class="recomm-metric">
-                  <span class="label">Expected Fuel Load</span>
+                  <span class="label">Total Fuel consumption</span>
                   <strong id="ai-rec-fuel">-</strong>
                 </div>
                 <div class="recomm-metric">
-                  <span class="label">Expected Operating Profit</span>
+                  <span class="label">Expected Net Profit</span>
                   <strong id="ai-rec-profit">-</strong>
                 </div>
                 <div class="recomm-metric">
-                  <span class="label">Operational Health Score</span>
-                  <strong id="ai-rec-score" style="color: var(--accent-color); font-size: 1.4rem;">-/100</strong>
+                  <span class="label">Operational Score</span>
+                  <strong id="ai-rec-score" style="color: var(--accent-color); font-size: 1.25rem;">-/100</strong>
                 </div>
               </div>
 
-              <!-- GA Realtime Visualization Graph Mock/Simulation -->
+              <!-- GA Convergence -->
               <div class="ga-viz-container" style="margin-top: 1rem; background: rgba(0, 0, 0, 0.3); border: 1px solid var(--border-color); border-radius: 8px; padding: 0.75rem;">
                 <h4 style="font-size: 0.8rem; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.25rem;">Genetic Algorithm Fitness Convergence</h4>
                 <div class="ga-generations-bar" style="display: flex; height: 35px; align-items: flex-end; gap: 2px;">
-                  <!-- Dynamically filled with vertical bars for generation fitness -->
                   <div style="flex: 1; height: 10%; background: var(--border-color);"></div>
                   <div style="flex: 1; height: 15%; background: var(--border-color);"></div>
                   <div style="flex: 1; height: 30%; background: var(--border-color);"></div>
@@ -627,10 +1031,10 @@
                   <div style="flex: 1; height: 75%; background: var(--accent-color);"></div>
                   <div style="flex: 1; height: 95%; background: var(--success-glow);"></div>
                 </div>
-                <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem;">
+                <div style="display: flex; justify-content: space-between; font-size: 0.7rem; color: var(--text-muted); margin-top: 0.25rem;">
                   <span>Generation 0 (Init)</span>
                   <span id="ga-generation-count">Gen 30</span>
-                  <span>Fitness: Max (98%)</span>
+                  <span>Fitness: Max</span>
                 </div>
               </div>
 
@@ -648,7 +1052,7 @@
             
             <div class="cargo-queue-columns">
               <div class="queue-col">
-                <h4 class="queue-col-title">Pending Screening</h4>
+                <h4 class="queue-col-title">Pending / Screening</h4>
                 <div class="queue-list" id="queue-pending">
                   <!-- Cargo items -->
                 </div>
@@ -694,14 +1098,13 @@
           </table>
         </div>
       </div>
-      </div> <!-- End of admin-occ-dashboard -->
     </section>
 
   </main>
 
   <!-- Footer -->
   <footer>
-    <p>&copy; 2026 Smart Air Transport. Indian Trunk Route OCC System. All rights reserved.</p>
+    <p>&copy; 2026 TransitOps. Indian Trunk Route OCC System. All rights reserved.</p>
   </footer>
 
   <script src="app.js"></script>

@@ -118,7 +118,7 @@ header {
 .nav-links {
   display: flex;
   align-items: center;
-  gap: 2rem;
+  gap: 1.25rem;
   list-style: none;
 }
 
@@ -129,8 +129,8 @@ header {
 .nav-link {
   text-decoration: none;
   color: var(--text-secondary);
-  font-size: 0.95rem;
-  font-weight: 600;
+  font-size: 0.85rem;
+  font-weight: 700;
   padding: 0.5rem 0.25rem;
   transition: color 0.3s ease;
   text-transform: uppercase;
@@ -165,7 +165,7 @@ header {
 .header-actions {
   display: flex;
   align-items: center;
-  gap: 1.25rem;
+  gap: 1rem;
 }
 
 /* Theme Toggle Button */
@@ -174,8 +174,8 @@ header {
   border: 1px solid var(--border-color);
   color: var(--text-primary);
   cursor: pointer;
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -258,7 +258,7 @@ main {
   background: var(--card-bg);
   border: 1px solid var(--border-color);
   border-radius: 16px;
-  padding: 2rem;
+  padding: 1.75rem;
   box-shadow: 0 15px 30px var(--card-shadow);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
@@ -284,35 +284,6 @@ main {
   text-transform: uppercase;
   margin-bottom: 1.5rem;
   filter: drop-shadow(0 0 4px rgba(0, 240, 255, 0.2));
-}
-
-/* Hero / Home Landing */
-.hero-content {
-  display: grid;
-  grid-template-columns: 1.15fr 0.85fr;
-  gap: 3rem;
-  align-items: center;
-  margin-bottom: 3.5rem;
-}
-
-.hero-text h1 {
-  font-size: 3.25rem;
-  font-weight: 800;
-  line-height: 1.15;
-  margin-bottom: 1.25rem;
-  letter-spacing: -1px;
-}
-
-.hero-text p {
-  font-size: 1.15rem;
-  color: var(--text-secondary);
-  line-height: 1.6;
-  margin-bottom: 2.25rem;
-}
-
-.hero-ctas {
-  display: flex;
-  gap: 1rem;
 }
 
 /* Buttons */
@@ -403,36 +374,6 @@ main {
   box-shadow: 0 0 8px var(--accent-color);
 }
 
-/* Feature grid */
-.features-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1.5rem;
-}
-
-.feature-card {
-  padding: 1.75rem;
-}
-
-.feature-icon {
-  font-size: 2rem;
-  margin-bottom: 1rem;
-}
-
-.feature-card h3 {
-  font-size: 1.15rem;
-  margin-bottom: 0.6rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.feature-card p {
-  color: var(--text-secondary);
-  font-size: 0.9rem;
-  line-height: 1.5;
-}
-
 /* Form Styling */
 .form-container {
   max-width: 760px;
@@ -477,16 +418,7 @@ input:focus, select:focus, textarea:focus {
   box-shadow: 0 0 8px rgba(0, 240, 255, 0.2);
 }
 
-.checkbox-group {
-  display: flex;
-  align-items: center;
-}
-
-.checkbox-group input {
-  cursor: pointer;
-}
-
-/* Summary boxes / lat boxes */
+/* Summary boxes */
 .summary-box {
   background: rgba(0, 0, 0, 0.25);
   border-radius: 12px;
@@ -509,234 +441,10 @@ input:focus, select:focus, textarea:focus {
   color: var(--text-primary);
 }
 
-/* Success details */
-.success-screen h3 {
-  font-size: 1.75rem;
-  margin-bottom: 0.5rem;
-}
-
-.tracking-code-container {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.75rem;
-  background: rgba(0, 240, 255, 0.05);
-  border: 1px solid var(--border-color);
-  padding: 0.5rem 1.25rem;
-  border-radius: 8px;
-  margin: 1rem 0 1.5rem 0;
-}
-
-.tracking-code {
-  font-family: var(--font-mono);
-  font-size: 1.4rem;
-  font-weight: 700;
-  color: var(--accent-color);
-}
-
-.copy-btn {
-  background: none;
-  border: none;
-  color: var(--accent-color);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-}
-
-.copy-btn:hover {
-  color: var(--accent-hover);
-}
-
-/* Screening Pipeline Visuals */
-.screening-steps {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.screening-step {
-  font-family: var(--font-mono);
-  font-size: 0.9rem;
-  padding: 0.4rem;
-  border-radius: 4px;
-}
-
-.screening-step.active-step {
-  background: rgba(0, 240, 255, 0.05);
-  border-left: 3px solid var(--accent-color);
-}
-
-.screening-step.passed-step {
-  color: var(--success-color);
-}
-
-.screening-step.failed-step {
-  color: var(--danger-color);
-}
-
-.bullet {
-  margin-right: 0.5rem;
-}
-
-/* Tracker Search */
-.tracker-search-box {
-  display: flex;
-  gap: 1rem;
-  margin-bottom: 2rem;
-}
-
-.tracker-search-box input {
-  padding: 0.85rem 1.25rem;
-  font-size: 1.05rem;
-  font-family: var(--font-mono);
-}
-
-/* Tracking Result Card & Timeline */
-.tracking-card {
-  background: var(--card-bg);
-  border: 1px solid var(--border-color);
-  border-radius: 16px;
-  padding: 2rem;
-}
-
-.tracking-meta {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-bottom: 1px solid var(--border-color);
-  padding-bottom: 1rem;
-  margin-bottom: 2rem;
-}
-
-.meta-group h4 {
-  font-size: 0.75rem;
-  text-transform: uppercase;
-  color: var(--text-muted);
-  margin-bottom: 0.25rem;
-  letter-spacing: 0.5px;
-}
-
-.meta-group p {
-  font-size: 1.05rem;
-  font-weight: 700;
-}
-
-/* Timeline */
-.timeline {
-  position: relative;
-  display: flex;
-  justify-content: space-between;
-  margin: 2.5rem 0;
-  padding: 0 0.5rem;
-}
-
-.timeline::before {
-  content: '';
-  position: absolute;
-  top: 15px;
-  left: 2rem;
-  right: 2rem;
-  height: 3px;
-  background-color: var(--timeline-line);
-  z-index: 1;
-}
-
-.timeline-progress {
-  position: absolute;
-  top: 15px;
-  left: 2rem;
-  height: 3px;
-  background-color: var(--timeline-node-active);
-  z-index: 2;
-  width: 0%;
-  transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 0 6px var(--accent-color);
-}
-
-.timeline-step {
-  position: relative;
-  z-index: 3;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 90px;
-}
-
-.step-node {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background-color: var(--bg-color);
-  border: 3px solid var(--timeline-node-inactive);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-  font-size: 0.8rem;
-  margin-bottom: 0.5rem;
-  transition: all 0.4s ease;
-  color: var(--text-muted);
-}
-
-.timeline-step.completed .step-node {
-  border-color: var(--timeline-node-active);
-  background-color: var(--timeline-node-active);
-  color: #050b14;
-}
-
-.timeline-step.active .step-node {
-  border-color: var(--timeline-node-active);
-  background-color: var(--bg-color);
-  color: var(--accent-color);
-  transform: scale(1.15);
-  box-shadow: 0 0 10px rgba(0, 240, 255, 0.4);
-}
-
-.step-label {
-  font-size: 0.75rem;
-  font-weight: 700;
-  text-align: center;
-  color: var(--text-muted);
-  transition: color 0.3s ease;
-  text-transform: uppercase;
-}
-
-.timeline-step.active .step-label,
-.timeline-step.completed .step-label {
-  color: var(--text-primary);
-}
-
-.tracking-logs h3 {
-  font-size: 1rem;
-  font-family: var(--font-mono);
-  margin-bottom: 0.75rem;
-  border-bottom: 1px solid var(--border-color);
-  padding-bottom: 0.4rem;
-  color: var(--accent-color);
-}
-
-.log-item {
-  display: flex;
-  gap: 1rem;
-  margin-bottom: 0.75rem;
-  font-size: 0.85rem;
-}
-
-.log-time {
-  font-family: var(--font-mono);
-  color: var(--text-muted);
-  min-width: 120px;
-}
-
-.log-desc {
-  color: var(--text-secondary);
-}
-
-/* ==========================================================================
-   OCC Dashboard Layout
-   ========================================================================== */
+/* OCC Dashboard Layout */
 .occ-layout-grid {
   display: grid;
-  grid-template-columns: 1.1fr 1fr 0.9fr;
+  grid-template-columns: 1.15fr 1fr 0.85fr;
   gap: 1.5rem;
   align-items: start;
 }
@@ -780,15 +488,9 @@ input:focus, select:focus, textarea:focus {
   color: var(--accent-color);
   padding: 0.2rem 0.5rem;
   border-radius: 4px;
-  animation: pulse-glow 2s infinite alternate;
 }
 
-@keyframes pulse-glow {
-  0% { box-shadow: 0 0 2px rgba(0, 240, 255, 0.2); }
-  100% { box-shadow: 0 0 10px rgba(0, 240, 255, 0.5); }
-}
-
-/* Fleet cards */
+/* Fleet Card status indicators */
 .fleet-grid {
   display: flex;
   flex-direction: column;
@@ -828,9 +530,9 @@ input:focus, select:focus, textarea:focus {
 }
 
 .status-indicator.available { background: rgba(0, 255, 102, 0.1); color: var(--success-color); }
-.status-indicator.inflight { background: rgba(0, 240, 255, 0.1); color: var(--accent-color); }
+.status-indicator.ontrip { background: rgba(0, 240, 255, 0.1); color: var(--accent-color); }
 .status-indicator.maintenance { background: rgba(255, 170, 0, 0.1); color: var(--warning-color); }
-.status-indicator.broken { background: rgba(255, 0, 85, 0.1); color: var(--danger-color); }
+.status-indicator.retired { background: rgba(255, 0, 85, 0.1); color: var(--danger-color); }
 
 .fleet-stats-row {
   display: grid;
@@ -845,7 +547,7 @@ input:focus, select:focus, textarea:focus {
   display: block;
 }
 
-/* Dynamic progress bars in fleet list */
+/* Progress bars */
 .progress-bar-container {
   width: 100%;
   height: 5px;
@@ -862,7 +564,7 @@ input:focus, select:focus, textarea:focus {
   transition: width 0.5s ease;
 }
 
-/* Table */
+/* Custom table rules */
 .flight-list-container {
   overflow-x: auto;
 }
@@ -912,7 +614,7 @@ input:focus, select:focus, textarea:focus {
 .india-route-map {
   width: 100%;
   height: auto;
-  max-height: 400px;
+  max-height: 380px;
   background-size: cover;
   padding: 10px;
 }
@@ -1145,12 +847,6 @@ footer {
     grid-template-columns: 1fr;
     text-align: center;
   }
-  .hero-ctas {
-    justify-content: center;
-  }
-  .hero-illustration {
-    order: -1;
-  }
   .features-grid {
     grid-template-columns: 1fr 1fr;
   }
@@ -1190,7 +886,7 @@ footer {
   }
 }
 
-/* Custom Scrollbar for OCC Dashboard */
+/* Custom Scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -1204,4 +900,65 @@ footer {
 }
 ::-webkit-scrollbar-thumb:hover {
   background: var(--accent-color);
+}
+
+/* ==========================================================================
+   PRINT STYLESHEET (For PDF Export)
+   ========================================================================== */
+.print-only {
+  display: none;
+}
+
+@media print {
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+    font-size: 10pt !important;
+  }
+  
+  /* Hide interactive OCC components and navigation */
+  header, footer, .btn, .hud-badge, form, .environmental-tuning-row, .emergency-deck, .ai-recommendation-panel, .ga-viz-container, .map-panel, .fleet-grid, .decision-logs-container {
+    display: none !important;
+  }
+  
+  .app-section {
+    display: none !important;
+  }
+  
+  #reports-section {
+    display: block !important;
+  }
+  
+  .printable-report-sheet {
+    display: block !important;
+  }
+  
+  .print-only {
+    display: block !important;
+  }
+  
+  .occ-panel, .glass-card {
+    background: none !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  
+  table.occ-table {
+    border: 1px solid #000000 !important;
+    width: 100% !important;
+  }
+  
+  table.occ-table th {
+    background: #f0f0f0 !important;
+    color: #000000 !important;
+    border-bottom: 2px solid #000000 !important;
+    font-weight: bold !important;
+  }
+  
+  table.occ-table td {
+    border-bottom: 1px solid #cccccc !important;
+    color: #000000 !important;
+  }
 }
