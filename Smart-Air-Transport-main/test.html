@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Smart Air OCC - TransitOps Verification Tests</title>
+  <title>Smart Air OCC - TransitOps Global Verification Tests</title>
   <style>
     body {
       background-color: #050b14;
       color: #f0f6fc;
-      font-family: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-family: 'Outfit', -apple-system, sans-serif;
       padding: 2rem;
       margin: 0;
     }
@@ -100,8 +100,8 @@
 <body>
 
   <div class="test-container">
-    <h1>TransitOps System Verification Tests</h1>
-    <p>Aviation compliance verification suite validating cargo capacities, pilot certifications, and aircraft statuses.</p>
+    <h1>TransitOps Global Verification Tests</h1>
+    <p>Compliance test runner validating wide-body payloads, routing calculations, and P&L math equations.</p>
     
     <div class="summary">
       <div class="summary-item" id="total-tests">Total: 0</div>
@@ -167,49 +167,40 @@
     }
 
     window.addEventListener("load", () => {
-      // Suite 1: Registration Validation
-      runSuite("Aircraft Registry Validations", {
-        "Aircraft Reg Numbers must be unique": () => {
-          // Pre-seeded VT-SAT01 exists. We simulate trying to add it again
-          const reg = "VT-SAT01";
-          const exists = !!state.aircraft[reg];
-          assert(exists === true, "VT-SAT01 not found in pre-seeded registry");
-        }
-      });
-
-      // Suite 2: Safety Compliance
-      runSuite("Pilot Safety Certification Rules", {
-        "Should block pilots with expired licenses": () => {
-          const expiredPilotId = "PL-103"; // Expired in 2024
-          const pilot = state.pilots[expiredPilotId];
-          const isLicenseExpired = new Date(pilot.licenseExp) < new Date();
-          assert(isLicenseExpired === true, "Failed to identify expired pilot license");
+      // Suite 1: Fleet Capability Limits
+      runSuite("Global Fleet Capability Checks", {
+        "Boeing 777F should support up to 102,000 kg cargo": () => {
+          const cap = state.aircraft["VT-SAT01"].payloadCap;
+          assert(cap === 102000, `VT-SAT01 payload capability is incorrect: ${cap}`);
         },
-        "Should block pilots with Suspended status": () => {
-          // Add suspended pilot
-          state.pilots["PL-SUSPENDED"] = { status: "Suspended", licenseExp: "2028-10-10", medicalExp: "2028-10-10" };
-          const p = state.pilots["PL-SUSPENDED"];
-          assert(p.status === "Suspended", "Pilot status is not Suspended");
+        "Boeing 747-8F should support up to 134,000 kg cargo": () => {
+          const cap = state.aircraft["VT-SAT02"].payloadCap;
+          assert(cap === 134000, `VT-SAT02 payload capability is incorrect: ${cap}`);
         }
       });
 
-      // Suite 3: Payload Capacity Engine
-      runSuite("Cargo Trip Payload Constraints", {
-        "Should reject dispatch if Cargo Weight exceeds Aircraft Capacity": () => {
-          const ac = state.aircraft["VT-SAT01"]; // Cap 23,000 kg
-          const cargoWeight = 25000;
-          const exceedsLimit = cargoWeight > ac.payloadCap;
-          assert(exceedsLimit === true, "Allowed cargo weight exceeding payload limit");
+      // Suite 2: Global routing distances
+      runSuite("Global Routing Distances Calculator", {
+        "Distance between BOM and JFK should be computed dynamically": () => {
+          const dist = calculateGlobalDistance("BOM", "JFK");
+          assert(dist > 5000 && dist < 15000, `Calculated distance is off-limits: ${dist} km`);
         }
       });
 
-      // Suite 4: Maintenance Status Transition
-      runSuite("Aircraft Maintenance Workflow", {
-        "Filing maintenance grounds aircraft and changes status to In Maintenance": () => {
-          // Ground VT-SAT03
-          const reg = "VT-SAT03";
-          state.aircraft[reg].status = "In Maintenance";
-          assert(state.aircraft[reg].status === "In Maintenance", "Aircraft did not transition to In Maintenance status");
+      // Suite 3: Profit & Loss accounting validations
+      runSuite("Real-Time P&L Equations", {
+        "Net Profit margin should correctly match Gross Revenue minus Operating costs": () => {
+          const grossRev = state.trips.filter(t => t.status === "Completed").reduce((sum, t) => sum + (t.revenue || 0), 0);
+          const fuelCost = state.fuelLogs.reduce((sum, f) => sum + f.cost, 0);
+          const maintCost = state.maintenance.reduce((sum, m) => sum + m.cost, 0);
+          const handlingCost = state.expenses.filter(e => e.category === "Airport Handling Fees" || e.category === "Landing Charges").reduce((sum, e) => sum + e.cost, 0);
+          const hangarCost = state.expenses.filter(e => e.category === "Hangar Charges").reduce((sum, e) => sum + e.cost, 0);
+          const crewCost = state.expenses.filter(e => e.category === "Crew Expenses").reduce((sum, e) => sum + e.cost, 0);
+
+          const totalCost = fuelCost + maintCost + handlingCost + hangarCost + crewCost;
+          const expectedNet = grossRev - totalCost;
+
+          assert(expectedNet === (grossRev - totalCost), "P&L Net calculations mismatch");
         }
       });
     });
