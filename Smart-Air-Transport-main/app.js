@@ -1,5 +1,5 @@
 // ==========================================================================
-// Smart Air Cargo Transport Platform (Global TransitOps Engine)
+// SkyFleet Nexus Cargo Transport Platform (Global SkyFleet Engine)
 // ==========================================================================
 
 const AIRPORTS = {
@@ -26,7 +26,10 @@ const AIRPORTS = {
   AMS: { x: 130, y: 130, name: "Amsterdam (AMS)", region: "Europe" },
   FRA: { x: 145, y: 140, name: "Frankfurt (FRA)", region: "Europe" },
   LEJ: { x: 155, y: 135, name: "Leipzig (LEJ)", region: "Europe" },
-  MUC: { x: 150, y: 150, name: "Munich (MUC)", region: "Europe" }
+  MUC: { x: 150, y: 150, name: "Munich (MUC)", region: "Europe" },
+  
+  // Asia/Pacific Hubs
+  SIN: { x: 380, y: 330, name: "Singapore Changi (SIN)", region: "Asia" }
 };
 
 // Local user accounts state
@@ -37,11 +40,11 @@ let currentUser = JSON.parse(localStorage.getItem("transitops_current_user") || 
 let state = {
   aircraft: {
     // Wide-Body Long-Range Fleet
-    "VT-SAT01": { name: "Atlas Carrier", model: "Boeing 777F", type: "Wide-Body", payloadCap: 102000, fuelCap: 181000, flyingHours: 120, acqCost: 2800, homeAirport: "BOM", currentAirport: "BOM", status: "Available" },
-    "VT-SAT02": { name: "Queen of Skies", model: "Boeing 747-8F", type: "Wide-Body", payloadCap: 134000, fuelCap: 226000, flyingHours: 85, acqCost: 3500, homeAirport: "DEL", currentAirport: "DEL", status: "Available" },
-    "VT-SAT03": { name: "Oceanic Freighter", model: "Airbus A330-P2F", type: "Wide-Body", payloadCap: 61000, fuelCap: 109000, flyingHours: 60, acqCost: 1900, homeAirport: "BLR", currentAirport: "BLR", status: "Available" },
-    "VT-SAT04": { name: "Next-Gen Cargo", model: "Airbus A350F", type: "Wide-Body", payloadCap: 109000, fuelCap: 156000, flyingHours: 40, acqCost: 3100, homeAirport: "DXB", currentAirport: "DXB", status: "Available" },
-    "VT-SAT05": { name: "FedEx Express", model: "McDonnell Douglas MD-11F", type: "Wide-Body", payloadCap: 85000, fuelCap: 146000, flyingHours: 180, acqCost: 1500, homeAirport: "JFK", currentAirport: "JFK", status: "Available" },
+    "VT-SAT01": { name: "Atlas Carrier", model: "Boeing 777", type: "Wide-Body", payloadCap: 102000, fuelCap: 181000, flyingHours: 120, acqCost: 2800, homeAirport: "BOM", currentAirport: "BOM", status: "Available" },
+    "VT-SAT02": { name: "Queen of Skies", model: "A320", type: "Narrow-Body", payloadCap: 16000, fuelCap: 27000, flyingHours: 85, acqCost: 1500, homeAirport: "DEL", currentAirport: "DEL", status: "Available" },
+    "VT-SAT03": { name: "Oceanic Freighter", model: "Airbus A321P2F", type: "Narrow-Body", payloadCap: 27000, fuelCap: 32000, flyingHours: 60, acqCost: 1900, homeAirport: "BLR", currentAirport: "BLR", status: "Available" },
+    "VT-SAT04": { name: "Next-Gen Cargo", model: "Boeing 737-800BCF", type: "Narrow-Body", payloadCap: 22500, fuelCap: 26000, flyingHours: 40, acqCost: 1400, homeAirport: "DXB", currentAirport: "DXB", status: "Available" },
+    "VT-SAT05": { name: "FedEx Express", model: "ATR 72-600F", type: "Turboprop", payloadCap: 8500, fuelCap: 10000, flyingHours: 180, acqCost: 800, homeAirport: "JFK", currentAirport: "JFK", status: "Available" },
     
     // Narrow-Body & Turboprop Fleet
     "VT-SAT06": { name: "Blue Dart Regional", model: "Boeing 737-800BCF", type: "Narrow-Body", payloadCap: 22500, fuelCap: 26000, flyingHours: 210, acqCost: 950, homeAirport: "AMD", currentAirport: "AMD", status: "Available" },
@@ -56,15 +59,15 @@ let state = {
   },
   trips: [
     { id: "TRP-8291", origin: "DEL", destination: "DXB", aircraft: "VT-SAT01", pilot: "PL-101", cargoWeight: 85000, cargoType: "Express", departure: "2026-07-12T18:00", status: "Dispatched", distance: 2200 },
-    { id: "TRP-4392", origin: "BOM", destination: "JFK", aircraft: "VT-SAT02", pilot: "PL-102", cargoWeight: 110000, cargoType: "Medical", departure: "2026-07-11T10:00", status: "Completed", distance: 11750, finalOdo: 14, fuelUsed: 141000, revenue: 142.5 }
+    { id: "TRP-4392", origin: "BOM", destination: "JFK", aircraft: "VT-SAT02", pilot: "PL-102", cargoWeight: 110000, cargoType: "Medical", departure: "2026-07-11T10:00", status: "Completed", distance: 11750, finalOdo: 14, fuelUsed: 141000, revenue: 14250000 }
   ],
   maintenance: [],
   fuelLogs: [
-    { aircraft: "VT-SAT02", qty: 141000, cost: 84.6, date: "2026-07-11", airport: "BOM" }
+    { aircraft: "VT-SAT02", qty: 141000, cost: 8460000, date: "2026-07-11", airport: "BOM" }
   ],
   expenses: [
-    { aircraft: "VT-SAT02", category: "Airport Handling Fees", cost: 1.25, date: "2026-07-11" },
-    { aircraft: "VT-SAT02", category: "Landing Charges", cost: 0.85, date: "2026-07-11" }
+    { aircraft: "VT-SAT02", category: "Airport Handling Fees", cost: 125000, date: "2026-07-11" },
+    { aircraft: "VT-SAT02", category: "Landing Charges", cost: 85000, date: "2026-07-11" }
   ],
   weather: "Normal",
   windSpeed: 12,
@@ -103,6 +106,50 @@ function loadDatabase() {
   if (saved) {
     try {
       state = JSON.parse(saved);
+      let migrated = false;
+      if (state.aircraft) {
+        Object.values(state.aircraft).forEach(ac => {
+          if (ac.acqCost && ac.acqCost < 100000) {
+            ac.acqCost = ac.acqCost * 100000;
+            migrated = true;
+          }
+        });
+      }
+      if (state.trips) {
+        state.trips.forEach(t => {
+          if (t.revenue && t.revenue < 100000) {
+            t.revenue = t.revenue * 100000;
+            migrated = true;
+          }
+        });
+      }
+      if (state.fuelLogs) {
+        state.fuelLogs.forEach(f => {
+          if (f.cost && f.cost < 100000) {
+            f.cost = f.cost * 100000;
+            migrated = true;
+          }
+        });
+      }
+      if (state.expenses) {
+        state.expenses.forEach(e => {
+          if (e.cost && e.cost < 100000) {
+            e.cost = e.cost * 100000;
+            migrated = true;
+          }
+        });
+      }
+      if (state.maintenance) {
+        state.maintenance.forEach(m => {
+          if (m.cost && m.cost < 100000) {
+            m.cost = m.cost * 100000;
+            migrated = true;
+          }
+        });
+      }
+      if (migrated) {
+        saveDatabase();
+      }
     } catch (e) {
       console.error("Could not parse saved global state. Loading defaults.");
     }
@@ -367,20 +414,20 @@ function initCustomerOrderForm() {
       }
 
       const dist = calculateGlobalDistance(origin, dest);
-      const revenue = (weight * 180) / 100000;
-      const cost = ((dist * 350) + 50000) / 100000;
+      const revenue = (weight * 180);
+      const cost = ((dist * 350) + 50000);
       const profit = revenue - cost;
       const fuel = dist * 12; // L
 
       document.getElementById("consolidation-status-text").style.display = "none";
       document.getElementById("consolidation-results").style.display = "block";
 
-      document.getElementById("consolidation-net-profit").textContent = `₹ ${Math.max(0, profit).toFixed(2)} Lakhs`;
-      document.getElementById("consolidation-projected-profit").innerHTML = `Projected Profit:<br>₹ ${profit.toFixed(2)} Lakhs`;
+      document.getElementById("consolidation-net-profit").textContent = `₹ ${Math.max(0, Math.round(profit)).toLocaleString()}`;
+      document.getElementById("consolidation-projected-profit").innerHTML = `Projected Profit:<br>₹ ${Math.round(profit).toLocaleString()}`;
       document.getElementById("consolidation-fuel").textContent = `${Math.round(fuel).toLocaleString()} L`;
 
       const verdict = document.getElementById("consolidation-verdict");
-      if (profit > 1.0) {
+      if (profit > 100000) {
         verdict.textContent = "✓ FEASIBLE (HIGH MARGIN)";
         verdict.style.color = "var(--success-color)";
       } else if (profit > 0) {
@@ -725,17 +772,17 @@ function switchOCCPanel(panelId) {
 
   // Render sub-panel data dynamically
   if (panelId === "overview") {
-    renderOCCOverview();
+    renderOCCStats();
   } else if (panelId === "aircraft") {
     renderOCCAircraft();
   } else if (panelId === "pilots") {
     renderOCCPilots();
   } else if (panelId === "dispatch") {
-    renderOCCDispatch();
+    renderOCCDispatchBoard();
   } else if (panelId === "maint") {
-    renderOCCMaint();
+    renderOCCMaintenanceTable();
   } else if (panelId === "fuel") {
-    renderOCCFuel();
+    renderOCCExpensesTable();
   } else if (panelId === "reports") {
     renderOCCReports();
   } else if (panelId === "dg") {
@@ -917,7 +964,7 @@ function completeTripOCC(tripId) {
 
   const hours = parseFloat(prompt("Enter flight duration hours (Odo increment):", "3"));
   const fuel = parseInt(prompt("Enter fuel consumed (Liters):", "5500"));
-  const rev = parseFloat(prompt("Enter revenue (₹ Lakhs):", "8.5"));
+  const rev = parseFloat(prompt("Enter revenue (₹):", "850000"));
 
   if (isNaN(hours) || isNaN(fuel) || isNaN(rev)) return;
 
@@ -939,7 +986,7 @@ function completeTripOCC(tripId) {
   state.fuelLogs.push({
     aircraft: acId,
     qty: fuel,
-    cost: Math.round(fuel * 0.095 * 10) / 10,
+    cost: Math.round(fuel * 60),
     date: getCurrentTimestamp().slice(0,10),
     airport: trip.destination
   });
@@ -961,7 +1008,7 @@ function renderOCCMaintenanceTable() {
       <td><strong>${m.type}</strong></td>
       <td>${m.desc}</td>
       <td style="font-family:var(--font-mono);">${m.date}</td>
-      <td style="font-family:var(--font-mono); font-weight:bold;">₹ ${m.cost} L</td>
+      <td style="font-family:var(--font-mono); font-weight:bold;">₹ ${m.cost.toLocaleString()}</td>
       <td><span class="status-indicator ${m.status === 'Active' ? 'maintenance' : 'available'}">${m.status}</span></td>
       <td>${m.status === 'Active' ? `<button class="btn btn-hud-action" style="padding:0.2rem 0.4rem; font-size:0.7rem;" onclick="closeMaintenanceOCC(${idx})">Resolve</button>` : ""}</td>
     </tr>
@@ -993,7 +1040,7 @@ function renderOCCExpensesTable() {
     <tr>
       <td style="font-family:var(--font-mono); font-weight:bold;">${item.ac}</td>
       <td>${item.cat}</td>
-      <td style="font-family:var(--font-mono); font-weight:bold; color:var(--danger-color)">₹ ${item.cost} L</td>
+      <td style="font-family:var(--font-mono); font-weight:bold; color:var(--danger-color)">₹ ${item.cost.toLocaleString()}</td>
       <td style="font-family:var(--font-mono); font-size:0.75rem;">${item.date}</td>
     </tr>
   `).join("");
@@ -1023,16 +1070,16 @@ function renderOCCReports() {
   const netProfit = grossRev - totalCost;
   const margin = grossRev > 0 ? ((netProfit / grossRev) * 100).toFixed(1) : "0.0";
 
-  document.getElementById("pl-gross-revenue").textContent = `₹ ${grossRev.toFixed(2)} Lakhs`;
-  document.getElementById("pl-fuel-cost").textContent = `₹ ${fuelCost.toFixed(2)} Lakhs`;
-  document.getElementById("pl-maint-cost").textContent = `₹ ${maintCost.toFixed(2)} Lakhs`;
-  document.getElementById("pl-handling-cost").textContent = `₹ ${handlingCost.toFixed(2)} Lakhs`;
-  document.getElementById("pl-hangar-cost").textContent = `₹ ${hangarCost.toFixed(2)} Lakhs`;
-  document.getElementById("pl-crew-cost").textContent = `₹ ${crewCost.toFixed(2)} Lakhs`;
-  document.getElementById("pl-total-cost").textContent = `₹ ${totalCost.toFixed(2)} Lakhs`;
+  document.getElementById("pl-gross-revenue").textContent = `₹ ${Math.round(grossRev).toLocaleString()}`;
+  document.getElementById("pl-fuel-cost").textContent = `₹ ${Math.round(fuelCost).toLocaleString()}`;
+  document.getElementById("pl-maint-cost").textContent = `₹ ${Math.round(maintCost).toLocaleString()}`;
+  document.getElementById("pl-handling-cost").textContent = `₹ ${Math.round(handlingCost).toLocaleString()}`;
+  document.getElementById("pl-hangar-cost").textContent = `₹ ${Math.round(hangarCost).toLocaleString()}`;
+  document.getElementById("pl-crew-cost").textContent = `₹ ${Math.round(crewCost).toLocaleString()}`;
+  document.getElementById("pl-total-cost").textContent = `₹ ${Math.round(totalCost).toLocaleString()}`;
   
   const netEl = document.getElementById("pl-net-profit");
-  netEl.textContent = `₹ ${netProfit.toFixed(2)} Lakhs`;
+  netEl.textContent = `₹ ${Math.round(netProfit).toLocaleString()}`;
   netEl.style.color = netProfit >= 0 ? "var(--success-color)" : "var(--danger-color)";
   document.getElementById("pl-operating-margin").textContent = `${margin}%`;
 
@@ -1088,10 +1135,10 @@ function renderOCCReports() {
         <td style="font-family:var(--font-mono);">${totalDist.toLocaleString()} km</td>
         <td style="font-family:var(--font-mono);">${fuelQty.toLocaleString()} L</td>
         <td style="font-family:var(--font-mono); font-weight:bold;">${fuelEff} km/L</td>
-        <td style="font-family:var(--font-mono); color:var(--success-color);">₹ ${revenue.toFixed(2)} L</td>
-        <td style="font-family:var(--font-mono);">₹ ${mCost.toFixed(2)} L</td>
-        <td style="font-family:var(--font-mono);">₹ ${fCost.toFixed(2)} L</td>
-        <td style="font-family:var(--font-mono); font-weight:bold; color:var(--danger-color)">₹ ${totalOpCost.toFixed(2)} L</td>
+        <td style="font-family:var(--font-mono); color:var(--success-color);">₹ ${Math.round(revenue).toLocaleString()}</td>
+        <td style="font-family:var(--font-mono);">₹ ${Math.round(mCost).toLocaleString()}</td>
+        <td style="font-family:var(--font-mono);">₹ ${Math.round(fCost).toLocaleString()}</td>
+        <td style="font-family:var(--font-mono); font-weight:bold; color:var(--danger-color)">₹ ${Math.round(totalOpCost).toLocaleString()}</td>
         <td style="font-family:var(--font-mono); font-weight:bold; color:${parseFloat(roi) >= 0 ? 'var(--success-color)' : 'var(--danger-color)'}">${roi}%</td>
       </tr>
     `;
@@ -1260,7 +1307,7 @@ function initOCCDashboard() {
       if (aiTripAircraftEl) aiTripAircraftEl.textContent = `${recommendedReg} (${state.aircraft[recommendedReg].model})`;
       if (aiTripDelayEl) aiTripDelayEl.textContent = `+${delay} mins`;
       if (aiTripFuelEl) aiTripFuelEl.textContent = `${fuel.toLocaleString()} L`;
-      if (aiTripProfitEl) aiTripProfitEl.textContent = `₹ ${(profit / 10).toFixed(2)} Lakhs`;
+      if (aiTripProfitEl) aiTripProfitEl.textContent = `₹ ${Math.round(profit * 10000).toLocaleString()}`;
 
       dispatchAiRecBox.style.display = "block";
     });
@@ -1407,7 +1454,7 @@ function initOCCDashboard() {
         disruption: "Fuel Upload Recorded",
         prevConfig: "None",
         newConfig: `Fuel log registered for ${acId}`,
-        rationale: `Liters: ${qty} | Total cost: ₹ ${cost} L`
+        rationale: `Liters: ${qty} | Total cost: ₹ ${cost.toLocaleString()}`
       });
 
       saveDatabase();
@@ -1440,7 +1487,7 @@ function initOCCDashboard() {
         disruption: "Expense Recorded",
         prevConfig: "None",
         newConfig: `${category} logged for ${acId}`,
-        rationale: `Cost: ₹ ${cost} Lakhs`
+        rationale: `Cost: ₹ ${cost.toLocaleString()}`
       });
 
       saveDatabase();
@@ -1660,7 +1707,7 @@ function runGeneticAlgorithmOptimization() {
 
     totalDelay += delay;
     totalFuel += fuel;
-    totalProfit += (profit / 10);
+    totalProfit += (profit * 10000);
   });
 
   if (dispatched.length === 0) {
@@ -1676,7 +1723,7 @@ function runGeneticAlgorithmOptimization() {
 
   if (delayEl) delayEl.textContent = `+${totalDelay} min`;
   if (fuelEl) fuelEl.textContent = `${totalFuel.toLocaleString()} L`;
-  if (profitEl) profitEl.textContent = `₹ ${totalProfit.toFixed(2)} Lakhs`;
+  if (profitEl) profitEl.textContent = `₹ ${Math.round(totalProfit).toLocaleString()}`;
   if (scoreEl) scoreEl.textContent = dispatched.length > 0 ? "96/100" : "-/100";
 }
 
@@ -1807,7 +1854,7 @@ function initCustomerAuth() {
       forgotContainer.style.display = "none";
       resetContainer.style.display = "none";
       userDashboard.style.display = "none";
-      document.getElementById("auth-title").textContent = "TransitOps Sign Up";
+      document.getElementById("auth-title").textContent = "SkyFleet Nexus Sign Up";
     });
 
     tabLoginBtn.addEventListener("click", () => {
@@ -1818,7 +1865,7 @@ function initCustomerAuth() {
       forgotContainer.style.display = "none";
       resetContainer.style.display = "none";
       userDashboard.style.display = "none";
-      document.getElementById("auth-title").textContent = "TransitOps Log In";
+      document.getElementById("auth-title").textContent = "SkyFleet Nexus Log In";
     });
   }
 
@@ -2022,7 +2069,7 @@ function initCustomerAuth() {
     btnForgotCancel.addEventListener("click", () => {
       forgotContainer.style.display = "none";
       loginContainer.style.display = "block";
-      document.getElementById("auth-title").textContent = "TransitOps Log In";
+      document.getElementById("auth-title").textContent = "SkyFleet Nexus Log In";
     });
   }
 
@@ -2086,7 +2133,7 @@ function initCustomerAuth() {
       showToast("Password updated successfully!");
       resetContainer.style.display = "none";
       loginContainer.style.display = "block";
-      document.getElementById("auth-title").textContent = "TransitOps Log In";
+      document.getElementById("auth-title").textContent = "SkyFleet Nexus Log In";
       resetForm.reset();
     });
   }
@@ -2110,7 +2157,7 @@ function initCustomerAuth() {
       signupContainer.style.display = "block";
       loginContainer.style.display = "none";
       userDashboard.style.display = "none";
-      document.getElementById("auth-title").textContent = "TransitOps Sign Up";
+      document.getElementById("auth-title").textContent = "SkyFleet Nexus Sign Up";
       if (tabSignupBtn) tabSignupBtn.classList.add("active");
       if (tabLoginBtn) tabLoginBtn.classList.remove("active");
     });
@@ -2179,7 +2226,7 @@ function initCustomerAuth() {
       signupContainer.style.display = "block";
       loginContainer.style.display = "none";
       userDashboard.style.display = "none";
-      document.getElementById("auth-title").textContent = "TransitOps Sign Up";
+      document.getElementById("auth-title").textContent = "SkyFleet Nexus Sign Up";
       if (tabSignupBtn) tabSignupBtn.classList.add("active");
       if (tabLoginBtn) tabLoginBtn.classList.remove("active");
     });
@@ -2210,7 +2257,7 @@ function renderUserDashboard() {
     if (tabSignupBtn) tabSignupBtn.style.display = "none";
     if (tabLoginBtn) tabLoginBtn.style.display = "none";
 
-    document.getElementById("auth-title").textContent = "TransitOps Account";
+    document.getElementById("auth-title").textContent = "SkyFleet Nexus Account";
     document.getElementById("user-display-name").textContent = `Welcome, ${currentUser.name}`;
     document.getElementById("user-display-email").textContent = currentUser.email;
 
@@ -2269,7 +2316,7 @@ function sendOtpEmail(email, otp) {
       'Accept': 'application/json'
     },
     body: JSON.stringify({
-      _subject: "TransitOps Air Cargo - Email OTP Verification",
+      _subject: "SkyFleet Nexus Air Cargo - Email OTP Verification",
       "Verification Passcode": otp,
       "System Message": "Please input this passcode inside the registration window to verify your corporate or personal account.",
       _honey: ""

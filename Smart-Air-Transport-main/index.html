@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Smart Air Transport - Global Cargo Operations Platform</title>
+  <title>SkyFleet Nexus - Global Cargo Operations Platform</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -15,7 +15,7 @@
         <svg viewBox="0 0 24 24">
           <path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/>
         </svg>
-        <span>TransitOps Global</span>
+        <span>SkyFleet Nexus</span>
       </a>
 
       <!-- Hamburger Menu for Mobile -->
@@ -101,6 +101,9 @@
                     <option value="LEJ">Leipzig (LEJ)</option>
                     <option value="MUC">Munich (MUC)</option>
                   </optgroup>
+                  <optgroup label="Asia Pacific">
+                    <option value="SIN">Singapore Changi (SIN)</option>
+                  </optgroup>
                 </select>
               </div>
               <div class="form-group">
@@ -131,6 +134,9 @@
                     <option value="FRA">Frankfurt (FRA)</option>
                     <option value="LEJ">Leipzig (LEJ)</option>
                     <option value="MUC">Munich (MUC)</option>
+                  </optgroup>
+                  <optgroup label="Asia Pacific">
+                    <option value="SIN">Singapore Changi (SIN)</option>
                   </optgroup>
                 </select>
               </div>
@@ -387,7 +393,7 @@
     <section class="app-section" id="auth-section">
       <div class="section-header">
         <div class="hud-badge">Secure User Gateway</div>
-        <h2 id="auth-title">TransitOps Sign Up</h2>
+        <h2 id="auth-title">SkyFleet Nexus Sign Up</h2>
         <p id="auth-subtitle">Create a personal or corporate account to manage bookings, unlock tracking tools, and view shipping logs.</p>
       </div>
 
@@ -533,7 +539,7 @@
           </div>
 
           <div style="display: flex; gap: 1rem; justify-content: center;">
-            <button class="btn btn-primary" id="btn-user-book">Book Flight</button>
+            <button class="btn btn-primary" id="btn-user-book">Send Cargo</button>
             <button class="btn btn-secondary" id="btn-user-logout">Log Out</button>
           </div>
 
@@ -799,14 +805,11 @@
                     <div class="form-group">
                       <label>Aircraft Model</label>
                       <select id="ac-model" required>
-                        <option value="Boeing 777F">Boeing 777F (102t Wide-Body)</option>
-                        <option value="Boeing 747-8F">Boeing 747-8F (134t Queen)</option>
-                        <option value="Airbus A330-P2F">Airbus A330-P2F (61t Wide)</option>
-                        <option value="Airbus A350F">Airbus A350F (109t ultra)</option>
-                        <option value="McDonnell Douglas MD-11F">MD-11F (85t Tri-Jet)</option>
-                        <option value="Boeing 737-800BCF">Boeing 737 (22.5t narrow)</option>
-                        <option value="Airbus A321P2F">Airbus A321P2F (27t narrow)</option>
-                        <option value="ATR 72-600F">ATR 72-600F (8.5t turboprop)</option>
+                        <option value="ATR 72-600F">ATR 72-600F</option>
+                        <option value="Boeing 737-800BCF">Boeing 737-800BCF</option>
+                        <option value="Airbus A321P2F">Airbus A321P2F</option>
+                        <option value="Boeing 777">Boeing 777</option>
+                        <option value="A320">A320</option>
                       </select>
                     </div>
                   </div>
@@ -815,15 +818,23 @@
                     <div class="form-group"><label>Flying Hours</label><input type="number" id="ac-hours" value="0" required></div>
                   </div>
                   <div class="form-row">
-                    <div class="form-group"><label>Acq Cost (₹ L)</label><input type="number" id="ac-acqcost" placeholder="1400" required></div>
+                    <div class="form-group"><label>Acq Cost (₹)</label><input type="number" id="ac-acqcost" placeholder="140000000" required></div>
                     <div class="form-group">
                       <label>Home Hub</label>
                       <select id="ac-home" required>
-                        <option value="BOM">Mumbai (BOM)</option>
                         <option value="DEL">Delhi (DEL)</option>
+                        <option value="BOM">Mumbai (BOM)</option>
+                        <option value="CCU">Kolkata (CCU)</option>
                         <option value="AMD">Ahmedabad (AMD)</option>
+                        <option value="BLR">Bengaluru (BLR)</option>
+                        <option value="LAX">Los Angeles (LAX)</option>
                         <option value="JFK">New York (JFK)</option>
+                        <option value="AMS">Amsterdam (AMS)</option>
                         <option value="DXB">Dubai (DXB)</option>
+                        <option value="IST">Istanbul (IST)</option>
+                        <option value="AUH">Abu Dhabi (AUH)</option>
+                        <option value="SIN">Singapore (SIN)</option>
+                        <option value="FRA">Frankfurt (FRA)</option>
                       </select>
                     </div>
                   </div>
@@ -976,7 +987,7 @@
                       <th>Check Type</th>
                       <th>Details</th>
                       <th>Date</th>
-                      <th>Cost (₹ L)</th>
+                      <th>Cost (₹)</th>
                       <th>Status</th>
                       <th>Action</th>
                     </tr>
@@ -1000,7 +1011,7 @@
                       <option value="C Check">C Check</option>
                     </select>
                   </div>
-                  <div class="form-group"><label>Service Cost (₹ Lakhs)</label><input type="number" id="maint-cost" placeholder="4.5" required></div>
+                  <div class="form-group"><label>Service Cost (₹)</label><input type="number" id="maint-cost" placeholder="450000" required></div>
                   <div class="form-group"><label>Description</label><textarea id="maint-desc" placeholder="Details..." required></textarea></div>
                   <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Ground Aircraft</button>
                 </form>
@@ -1019,16 +1030,26 @@
                   <div class="form-group"><label>Select Aircraft</label><select id="fuel-aircraft" required></select></div>
                   <div class="form-row">
                     <div class="form-group"><label>Liters</label><input type="number" id="fuel-qty" placeholder="4650" required></div>
-                    <div class="form-group"><label>Cost (₹ Lakhs)</label><input type="number" id="fuel-cost" placeholder="4.4" required></div>
+                    <div class="form-group"><label>Cost (₹)</label><input type="number" id="fuel-cost" placeholder="440000" required></div>
                   </div>
                   <div class="form-row">
                     <div class="form-group"><label>Date</label><input type="date" id="fuel-date" required></div>
                     <div class="form-group">
                       <label>Airport</label>
                       <select id="fuel-hub" required>
+                        <option value="DEL">DEL</option>
                         <option value="BOM">BOM</option>
-                        <option value="DXB">DXB</option>
+                        <option value="CCU">CCU</option>
+                        <option value="AMD">AMD</option>
+                        <option value="BLR">BLR</option>
+                        <option value="LAX">LAX</option>
                         <option value="JFK">JFK</option>
+                        <option value="AMS">AMS</option>
+                        <option value="DXB">DXB</option>
+                        <option value="IST">IST</option>
+                        <option value="AUH">AUH</option>
+                        <option value="SIN">SIN</option>
+                        <option value="FRA">FRA</option>
                       </select>
                     </div>
                   </div>
@@ -1050,7 +1071,7 @@
                         <option value="Landing Charges">Landing / Parking Charges</option>
                       </select>
                     </div>
-                    <div class="form-group"><label>Cost (₹ L)</label><input type="number" id="exp-cost" placeholder="0.25" required></div>
+                    <div class="form-group"><label>Cost (₹)</label><input type="number" id="exp-cost" placeholder="25000" required></div>
                   </div>
                   <div class="form-group"><label>Date</label><input type="date" id="exp-date" required></div>
                   <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Log Expense</button>
@@ -1146,41 +1167,41 @@
                 <div style="font-family: var(--font-mono); margin-top: 1rem; line-height: 1.8;">
                   <div style="display:flex; justify-content:space-between; font-size:1.15rem; font-weight:bold; border-bottom:1px solid var(--border-color); padding-bottom:0.5rem;">
                     <span>Gross Cargo Revenue:</span>
-                    <span id="pl-gross-revenue" style="color:var(--success-color);">₹ 0 Lakhs</span>
+                    <span id="pl-gross-revenue" style="color:var(--success-color);">₹ 0</span>
                   </div>
                   
                   <div style="margin-top:1rem; border-bottom:1px dashed var(--border-color); padding-bottom:0.5rem;">
                     <h4 style="font-size:0.8rem; text-transform:uppercase; color:var(--text-secondary);">Operating Costs Breakdown:</h4>
                     <div style="display:flex; justify-content:space-between; font-size:0.85rem;">
                       <span>Fuel Cost:</span>
-                      <span id="pl-fuel-cost">₹ 0 Lakhs</span>
+                       <span id="pl-fuel-cost">₹ 0</span>
                     </div>
                     <div style="display:flex; justify-content:space-between; font-size:0.85rem;">
                       <span>Maintenance checks:</span>
-                      <span id="pl-maint-cost">₹ 0 Lakhs</span>
+                       <span id="pl-maint-cost">₹ 0</span>
                     </div>
                     <div style="display:flex; justify-content:space-between; font-size:0.85rem;">
                       <span>Airport Handling & landing:</span>
-                      <span id="pl-handling-cost">₹ 0 Lakhs</span>
+                       <span id="pl-handling-cost">₹ 0</span>
                     </div>
                     <div style="display:flex; justify-content:space-between; font-size:0.85rem;">
                       <span>Hangar & Parking fees:</span>
-                      <span id="pl-hangar-cost">₹ 0 Lakhs</span>
+                       <span id="pl-hangar-cost">₹ 0</span>
                     </div>
                     <div style="display:flex; justify-content:space-between; font-size:0.85rem;">
                       <span>Crew Salaries / expenses:</span>
-                      <span id="pl-crew-cost">₹ 0 Lakhs</span>
+                       <span id="pl-crew-cost">₹ 0</span>
                     </div>
                   </div>
 
                   <div style="display:flex; justify-content:space-between; font-size:0.95rem; font-weight:bold; margin-top:0.5rem;">
                     <span>Total Operating Costs:</span>
-                    <span id="pl-total-cost" style="color:var(--danger-color)">₹ 0 Lakhs</span>
+                     <span id="pl-total-cost" style="color:var(--danger-color)">₹ 0</span>
                   </div>
 
                   <div style="display:flex; justify-content:space-between; font-size:1.25rem; font-weight:bold; border-top:2px solid var(--accent-color); padding-top:0.75rem; margin-top:1rem;">
                     <span>Net Margin Profit:</span>
-                    <span id="pl-net-profit" style="color:var(--success-color);">₹ 0 Lakhs</span>
+                     <span id="pl-net-profit" style="color:var(--success-color);">₹ 0</span>
                   </div>
                   <div style="display:flex; justify-content:space-between; font-size:0.85rem; color:var(--text-secondary);">
                     <span>Operating Margin (%):</span>
@@ -1207,9 +1228,17 @@
                     <select id="consolidate-origin" style="padding: 0.4rem; font-size: 0.85rem; width:100%; background: var(--input-bg); border: 1px solid var(--border-color); color: var(--text-primary);">
                       <option value="DEL">Delhi (DEL)</option>
                       <option value="BOM">Mumbai (BOM)</option>
-                      <option value="BLR">Bengaluru (BLR)</option>
                       <option value="CCU">Kolkata (CCU)</option>
                       <option value="AMD">Ahmedabad (AMD)</option>
+                      <option value="BLR">Bengaluru (BLR)</option>
+                      <option value="LAX">Los Angeles (LAX)</option>
+                      <option value="JFK">New York (JFK)</option>
+                      <option value="AMS">Amsterdam (AMS)</option>
+                      <option value="DXB">Dubai (DXB)</option>
+                      <option value="IST">Istanbul (IST)</option>
+                      <option value="AUH">Abu Dhabi (AUH)</option>
+                      <option value="SIN">Singapore (SIN)</option>
+                      <option value="FRA">Frankfurt (FRA)</option>
                     </select>
                   </div>
                 </div>
@@ -1217,11 +1246,19 @@
                   <div class="form-group" style="margin-bottom: 0.75rem;">
                     <label style="font-size: 0.75rem;">Consolidation Destination</label>
                     <select id="consolidate-dest" style="padding: 0.4rem; font-size: 0.85rem; width:100%; background: var(--input-bg); border: 1px solid var(--border-color); color: var(--text-primary);">
-                      <option value="BOM">Mumbai (BOM)</option>
                       <option value="DEL">Delhi (DEL)</option>
-                      <option value="BLR">Bengaluru (BLR)</option>
+                      <option value="BOM">Mumbai (BOM)</option>
                       <option value="CCU">Kolkata (CCU)</option>
                       <option value="AMD">Ahmedabad (AMD)</option>
+                      <option value="BLR">Bengaluru (BLR)</option>
+                      <option value="LAX">Los Angeles (LAX)</option>
+                      <option value="JFK">New York (JFK)</option>
+                      <option value="AMS">Amsterdam (AMS)</option>
+                      <option value="DXB">Dubai (DXB)</option>
+                      <option value="IST">Istanbul (IST)</option>
+                      <option value="AUH">Abu Dhabi (AUH)</option>
+                      <option value="SIN">Singapore (SIN)</option>
+                      <option value="FRA">Frankfurt (FRA)</option>
                     </select>
                   </div>
                 </div>
@@ -1244,11 +1281,11 @@
                   <div id="consolidation-results" style="display: none; text-align: left; font-family: var(--font-mono); font-size: 0.9rem; width: 100%; line-height: 1.6;">
                     <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; border-bottom: 1px dashed var(--border-color); padding-bottom: 0.25rem;">
                       <span>Estimated Net Profit:</span>
-                      <strong id="consolidation-net-profit" style="color: var(--success-color);">₹ 0 Lakhs</strong>
+                       <strong id="consolidation-net-profit" style="color: var(--success-color);">₹ 0</strong>
                     </div>
                     <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; border-bottom: 1px dashed var(--border-color); padding-bottom: 0.25rem;">
                       <span>Projected Profit:</span>
-                      <strong id="consolidation-projected-profit" style="color: var(--success-color);">Projected Profit:<br>₹ 0 Lakhs</strong>
+                       <strong id="consolidation-projected-profit" style="color: var(--success-color);">Projected Profit:<br>₹ 0</strong>
                     </div>
                     <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; border-bottom: 1px dashed var(--border-color); padding-bottom: 0.25rem;">
                       <span>Fuel Burn Estimate:</span>
@@ -1304,7 +1341,7 @@
 
   <!-- Footer -->
   <footer>
-    <p>&copy; 2026 TransitOps Global Air Cargo Transport. All rights reserved.</p>
+    <p>&copy; 2026 SkyFleet Nexus Air Cargo Transport. All rights reserved.</p>
   </footer>
 
   <!-- OTP Verification Modal -->
