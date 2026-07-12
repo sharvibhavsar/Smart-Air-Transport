@@ -653,7 +653,7 @@ http://localhost:3000
 
 # Developed For
 
-**Odoo Hackathon 2025**
+**Odoo Hackathon 2026**
 
 Smart Transport Operations Platform
 
